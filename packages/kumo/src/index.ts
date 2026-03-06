@@ -204,6 +204,12 @@ export {
 } from "./components/date-picker";
 
 export { Flow } from "./components/flow";
+export {
+  Chart,
+  ChartPalette,
+  TimeseriesChart,
+  ChartLegend,
+} from "./components/chart";
 // Sidebar
 export {
   Sidebar,
@@ -247,7 +253,6 @@ export {
   type SidebarMenuSubButtonProps,
   type SidebarInputProps,
 } from "./components/sidebar";
-
 // PLOP_INJECT_EXPORT
 
 // Utils
