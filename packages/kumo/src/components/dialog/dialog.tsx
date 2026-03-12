@@ -287,7 +287,11 @@ function DialogTrigger({ children, ...props }: DialogTriggerProps) {
   const role = useDialogRole();
   const BaseTrigger =
     role === "alertdialog" ? AlertDialogBase.Trigger : DialogBase.Trigger;
-  return <BaseTrigger {...props}>{children}</BaseTrigger>;
+  return (
+    <BaseTrigger data-kumo="dialog-trigger" {...props}>
+      {children}
+    </BaseTrigger>
+  );
 }
 
 DialogTrigger.displayName = "Dialog.Trigger";

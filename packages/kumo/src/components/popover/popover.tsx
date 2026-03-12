@@ -78,6 +78,7 @@ function PopoverTrigger({
 }: PopoverTriggerProps) {
   return (
     <PopoverBase.Trigger
+      data-kumo="popover-trigger"
       className={className}
       render={
         asChild ? (children as BasePopoverTriggerProps["render"]) : undefined

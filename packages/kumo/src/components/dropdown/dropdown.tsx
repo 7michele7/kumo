@@ -424,6 +424,7 @@ const DropdownMenuTrigger = React.forwardRef<
   return (
     <DropdownMenuPrimitive.Trigger
       ref={ref}
+      data-kumo="dropdown-trigger"
       {...props}
       {...(effectiveRender && {
         render: effectiveRender as React.ReactElement<Record<string, unknown>>,
