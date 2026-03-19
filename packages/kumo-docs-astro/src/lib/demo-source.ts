@@ -7,7 +7,7 @@
  * Given a name like "ButtonPrimaryDemo" it will:
  *   1. Derive the file path: src/components/demos/ButtonDemo.tsx
  *   2. Parse that file with the TypeScript AST (same logic as extract-demo-examples.ts)
- *   3. Return the verbatim JSX return body for that specific function
+ *   3. Return the JSX return body, dedented so indentation starts at column 0
  *
  * This runs at Astro build time — no intermediate JSON file required.
  */
@@ -28,12 +28,25 @@ function getNodeText(node: ts.Node, sourceFile: ts.SourceFile): string {
   return node.getText(sourceFile);
 }
 
+function dedent(code: string): string {
+  const lines = code.split("\n");
+  // Find the minimum indentation among all non-empty lines (skip the first
+  // line — it has already been stripped of its leading indent by getText()).
+  const indents = lines
+    .slice(1)
+    .filter((l) => l.trim().length > 0)
+    .map((l) => l.match(/^(\s*)/)?.[1].length ?? 0);
+  const minIndent = indents.length > 0 ? Math.min(...indents) : 0;
+  if (minIndent === 0) return code;
+  return lines.map((l, i) => (i === 0 ? l : l.slice(minIndent))).join("\n");
+}
+
 function cleanupJSX(jsx: string): string {
   jsx = jsx.trim();
   if (jsx.startsWith("(") && jsx.endsWith(")")) {
     jsx = jsx.slice(1, -1).trim();
   }
-  return jsx;
+  return dedent(jsx);
 }
 
 function extractReturnJSX(

@@ -94,6 +94,19 @@ function extractJSDocDescription(
 /**
  * Clean up extracted JSX code for readability
  */
+function dedent(code: string): string {
+  const lines = code.split("\n");
+  // Find the minimum indentation among all non-empty lines after the first.
+  // The first line has already been stripped of leading indent by getText().
+  const indents = lines
+    .slice(1)
+    .filter((l) => l.trim().length > 0)
+    .map((l) => l.match(/^(\s*)/)?.[1].length ?? 0);
+  const minIndent = indents.length > 0 ? Math.min(...indents) : 0;
+  if (minIndent === 0) return code;
+  return lines.map((l, i) => (i === 0 ? l : l.slice(minIndent))).join("\n");
+}
+
 function cleanupJSX(jsx: string): string {
   jsx = jsx.trim();
 
@@ -102,7 +115,7 @@ function cleanupJSX(jsx: string): string {
     jsx = jsx.slice(1, -1).trim();
   }
 
-  return jsx;
+  return dedent(jsx);
 }
 
 /**
