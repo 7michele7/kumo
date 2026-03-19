@@ -115,19 +115,19 @@ export default function (plop) {
 
       // 8. Success message
       actions.push(() => {
-        console.log("\n✅ Component scaffolded successfully!");
-        console.log(`\n📁 Files created:`);
+        console.log("\n Component scaffolded successfully!");
+        console.log(`\n Files created:`);
         console.log(`   - src/components/${kebabName}/${kebabName}.tsx`);
         console.log(`   - src/components/${kebabName}/index.ts`);
         console.log(
           `   - src/components/${kebabName}/${kebabName}.stories.tsx`,
         );
         console.log(`   - src/components/${kebabName}/${kebabName}.test.tsx`);
-        console.log(`\n📝 Files updated:`);
+        console.log(`\n Files updated:`);
         console.log(`   - src/index.ts`);
         console.log(`   - vite.config.ts`);
         console.log(`   - package.json`);
-        console.log(`\n🧪 Next steps:`);
+        console.log(`\n Next steps:`);
         console.log(
           `   1. Implement your component in src/components/${kebabName}/${kebabName}.tsx`,
         );
@@ -137,13 +137,16 @@ export default function (plop) {
         console.log(
           `   3. Write tests in src/components/${kebabName}/${kebabName}.test.tsx`,
         );
-        console.log(`   4. Run Storybook: pnpm storybook`);
-        console.log(`   5. Run tests: pnpm test`);
-        console.log(`   6. Build: pnpm build`);
-        console.log(`\n💡 Import examples:`);
+        console.log(`   4. Run tests: pnpm test`);
+        console.log(`   5. Build: pnpm build`);
+        console.log(`\n Import examples:`);
         console.log(`   import { ${pascalName} } from "@cloudflare/kumo";`);
         console.log(
           `   import { ${pascalName} } from "@cloudflare/kumo/components/${kebabName}";`,
+        );
+        console.log(`\n Create the docs page:`);
+        console.log(
+          `   pnpm --filter @cloudflare/kumo-docs-astro new:docs-page`,
         );
 
         return "Component created successfully";
@@ -152,5 +155,4 @@ export default function (plop) {
       return actions;
     },
   });
-
 }

@@ -1,0 +1,159 @@
+---
+layout: ~/layouts/MdxDocLayout.astro
+title: "MDX Components Test"
+description: "Verifies that ComponentExample auto-extracts source code from demo function names."
+---
+
+import ComponentExample from "~/components/docs/ComponentExample.astro";
+import ComponentSection from "~/components/docs/ComponentSection.astro";
+import CodeBlock from "~/components/docs/CodeBlock.astro";
+import Heading from "~/components/docs/Heading.astro";
+import Callout from "~/components/docs/Callout.astro";
+import {
+  ButtonBasicDemo,
+  ButtonPrimaryDemo,
+  ButtonSecondaryDemo,
+  ButtonGhostDemo,
+  ButtonDestructiveDemo,
+  ButtonSizesDemo,
+  ButtonWithIconDemo,
+  ButtonIconOnlyDemo,
+  ButtonLoadingDemo,
+  ButtonDisabledDemo,
+} from "~/components/demos/ButtonDemo";
+import {
+  BadgeVariantsDemo,
+  BadgePrimaryDemo,
+  BadgeInSentenceDemo,
+} from "~/components/demos/BadgeDemo";
+
+{/* ------------------------------------------------------------------ */}
+{/* Section 1 — name= only (new API) */}
+{/* ------------------------------------------------------------------ */}
+
+<ComponentSection>
+  <Heading level={2}>New API — name= only</Heading>
+
+<Callout>
+  These examples use only `name="DemoFunctionName"`. The code string, vrSection,
+  and vrTitle are all derived automatically at build time.
+</Callout>
+
+<Heading level={3}>Button — basic</Heading>
+<ComponentExample name="ButtonBasicDemo">
+  <ButtonBasicDemo client:visible />
+</ComponentExample>
+
+<Heading level={3}>Button — primary variant</Heading>
+<ComponentExample name="ButtonPrimaryDemo">
+  <ButtonPrimaryDemo client:visible />
+</ComponentExample>
+
+<Heading level={3}>Button — sizes</Heading>
+<ComponentExample name="ButtonSizesDemo">
+  <ButtonSizesDemo client:visible />
+</ComponentExample>
+
+<Heading level={3}>Button — with icon</Heading>
+<ComponentExample name="ButtonWithIconDemo">
+  <ButtonWithIconDemo client:visible />
+</ComponentExample>
+
+<Heading level={3}>Button — icon only</Heading>
+<ComponentExample name="ButtonIconOnlyDemo">
+  <ButtonIconOnlyDemo client:visible />
+</ComponentExample>
+
+<Heading level={3}>Button — loading state</Heading>
+<ComponentExample name="ButtonLoadingDemo">
+  <ButtonLoadingDemo client:visible />
+</ComponentExample>
+
+<Heading level={3}>Button — disabled</Heading>
+<ComponentExample name="ButtonDisabledDemo">
+  <ButtonDisabledDemo client:visible />
+</ComponentExample>
+
+<Heading level={3}>Badge — all variants</Heading>
+<ComponentExample name="BadgeVariantsDemo">
+  <BadgeVariantsDemo client:visible />
+</ComponentExample>
+
+  <Heading level={3}>Badge — in a sentence</Heading>
+  <ComponentExample name="BadgeInSentenceDemo">
+    <BadgeInSentenceDemo client:visible />
+  </ComponentExample>
+</ComponentSection>
+
+{/* ------------------------------------------------------------------ */}
+{/* Section 2 — old API (manual code=) still works */}
+{/* ------------------------------------------------------------------ */}
+
+<ComponentSection>
+  <Heading level={2}>Old API — manual code= (backward-compat check)</Heading>
+
+  <Callout>
+    These examples use the original explicit `code={...}` prop. They should render identically to before.
+  </Callout>
+
+<ComponentExample
+  code={`<Button variant="primary">Primary</Button>`}
+  vrSection="variant-primary"
+  vrTitle="Variant: Primary"
+>
+  <ButtonPrimaryDemo client:visible />
+</ComponentExample>
+
+  <ComponentExample
+    code={`<Button variant="secondary">Secondary</Button>`}
+    vrSection="variant-secondary"
+  >
+    <ButtonSecondaryDemo client:visible />
+  </ComponentExample>
+</ComponentSection>
+
+{/* ------------------------------------------------------------------ */}
+{/* Section 3 — name= with explicit code= override */}
+{/* ------------------------------------------------------------------ */}
+
+<ComponentSection>
+  <Heading level={2}>Override — name= with code= taking precedence</Heading>
+
+<Callout>
+  When both `name` and `code` are provided, the explicit `code` prop wins.
+  Useful when you want to show a simplified snippet instead of the full demo
+  source.
+</Callout>
+
+  <ComponentExample
+    name="ButtonPrimaryDemo"
+    code={`{/* This is a manually overridden snippet */}\n<Button variant="primary">Custom snippet</Button>`}
+  >
+    <ButtonPrimaryDemo client:visible />
+  </ComponentExample>
+</ComponentSection>
+
+{/* ------------------------------------------------------------------ */}
+{/* Section 4 — vrSection auto-derivation verification */}
+{/* ------------------------------------------------------------------ */}
+
+<ComponentSection>
+  <Heading level={2}>vrSection auto-derivation</Heading>
+
+<Callout>
+  Inspect the rendered HTML — each example below should have a `data-vr-section`
+  attribute derived from the demo name. Check DevTools.
+</Callout>
+
+The expected `data-vr-section` values:
+
+  <CodeBlock lang="ts" code={`// ButtonBasicDemo        → "basic"
+// ButtonPrimaryDemo       → "primary"
+// ButtonSizesDemo         → "sizes"
+// ButtonWithIconDemo      → "with-icon"
+// ButtonIconOnlyDemo      → "icon-only"
+// ButtonLoadingDemo       → "loading"
+// ButtonDisabledDemo      → "disabled"
+// BadgeVariantsDemo       → "variants"
+// BadgeInSentenceDemo     → "in-sentence"`} />
+</ComponentSection>

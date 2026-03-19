@@ -1077,6 +1077,27 @@ Props:
 - `lang`: CodeLang
 
 
+**Examples:**
+
+```tsx
+<CodeBlock
+      lang="tsx"
+      code={`const greeting = "Hello, World!";
+console.log(greeting);`}
+    />
+```
+
+```tsx
+<Code
+      lang="bash"
+      code="export API_KEY={{apiKey}}"
+      values={{
+        apiKey: { value: "sk_live_123", highlight: true },
+      }}
+    />
+```
+
+
 ---
 
 ### Collapsible
@@ -3295,10 +3316,6 @@ Animated circular spinner for indicating loading states.
 <Loader size={24} />
 ```
 
-```tsx
-<Loader className="text-kumo-subtle" />
-```
-
 
 ---
 
@@ -3334,20 +3351,20 @@ MenuBar — horizontal icon-button toolbar with keyboard arrow-key navigation.  
 
 ```tsx
 <MenuBar
-      isActive={active}
+      isActive="bold"
       optionIds
       options={[
         {
           icon: <TextBolderIcon />,
           id: "bold",
           tooltip: "Bold",
-          onClick: () => setActive(active === "bold" ? undefined : "bold"),
+          onClick: () => {},
         },
         {
           icon: <TextItalicIcon />,
           id: "italic",
           tooltip: "Italic",
-          onClick: () => setActive(active === "italic" ? undefined : "italic"),
+          onClick: () => {},
         },
       ]}
     />
@@ -3407,7 +3424,7 @@ Progress bar showing a measured value within a known range (e.g. quota usage).
 <Meter
       label="Upload progress"
       value={80}
-      indicatorClassName="from-kumo-success via-kumo-success to-kumo-success"
+      indicatorClassName="from-green-500 via-green-500 to-green-500"
     />
 ```
 

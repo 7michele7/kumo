@@ -1,0 +1,75 @@
+---
+layout: ~/layouts/MdxDocLayout.astro
+title: "{{titleName}}"
+description: "{{description}}"
+sourceFile: "components/{{kebabCase name}}"
+{{#if hasBaseUI}}
+baseUIComponent: "{{baseUISlug}}"
+{{/if}}
+---
+
+import ComponentExample from "~/components/docs/ComponentExample.astro";
+import ComponentSection from "~/components/docs/ComponentSection.astro";
+import CodeBlock from "~/components/docs/CodeBlock.astro";
+import PropsTable from "~/components/docs/PropsTable.astro";
+import Heading from "~/components/docs/Heading.astro";
+import { {{pascalCase name}}BasicDemo } from "~/components/demos/{{pascalCase name}}Demo";
+
+{/* Demo */}
+
+<ComponentSection>
+  <ComponentExample name="{{pascalCase name}}BasicDemo">
+    <{{pascalCase name}}BasicDemo {{clientDirective}} />
+  </ComponentExample>
+</ComponentSection>
+
+{/* Installation */}
+
+<ComponentSection>
+  <Heading level={2}>Installation</Heading>
+  <CodeBlock code={`npm install @cloudflare/kumo`} lang="bash" />
+</ComponentSection>
+
+{/* Usage */}
+
+<ComponentSection>
+  <Heading level={2}>Usage</Heading>
+  <CodeBlock
+    code={`import { {{pascalCase name}} } from "@cloudflare/kumo";
+
+export default function Example() {
+  return <{{pascalCase name}}>TODO: basic usage</{{pascalCase name}}>;
+}`}
+    lang="tsx"
+  />
+</ComponentSection>
+
+{/* Examples */}
+
+<ComponentSection>
+  <Heading level={2}>Examples</Heading>
+
+  {/* TODO: Add more examples below. For each, add a named export to {{pascalCase name}}Demo.tsx
+      and a <ComponentExample> block here. The code string is extracted automatically.
+
+      <Heading level={3}>My Variant</Heading>
+      <ComponentExample name="{{pascalCase name}}MyVariantDemo">
+        <{{pascalCase name}}MyVariantDemo {{clientDirective}} />
+      </ComponentExample>
+  */}
+</ComponentSection>
+
+{/* API Reference */}
+
+<ComponentSection>
+  <Heading level={2}>API Reference</Heading>
+  <PropsTable component="{{pascalCase name}}" />
+{{#if isCompound}}
+  {/* TODO: Add PropsTable for each sub-component, e.g.:
+      <Heading level={3}>{{pascalCase name}}.Root</Heading>
+      <PropsTable component="{{pascalCase name}}.Root" />
+      <Heading level={3}>{{pascalCase name}}.Trigger</Heading>
+      <PropsTable component="{{pascalCase name}}.Trigger" />
+  */}
+{{/if}}
+</ComponentSection>

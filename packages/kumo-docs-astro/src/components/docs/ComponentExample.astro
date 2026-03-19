@@ -1,14 +1,27 @@
 ---
 import ComponentPreview from "./ComponentPreview.astro";
 import CodeBlock from "./CodeBlock.astro";
+import { getDemoSource, deriveVrSection } from "~/lib/demo-source";
 
 interface Props {
-  code: string;
+  /**
+   * Demo function name (e.g. "ButtonPrimaryDemo").
+   * When provided, the JSX source is extracted automatically at build time —
+   * no manual `code` prop needed. `vrSection` and `vrTitle` are also derived
+   * from the name automatically.
+   */
+  name?: string;
+  /**
+   * Raw code string to display. Takes precedence over `name` when both are
+   * provided. Required when `name` is not supplied.
+   */
+  code?: string;
   lang?: "tsx" | "ts" | "jsx" | "js" | "bash" | "css";
   /**
    * Visual regression section identifier.
    * When provided, the screenshot worker can target this specific demo
    * for stable, per-component screenshots instead of full-page captures.
+   * Derived automatically from `name` when not set.
    */
   vrSection?: string;
   /**
@@ -18,7 +31,13 @@ interface Props {
   vrTitle?: string;
 }
 
-const { code, lang = "tsx", vrSection, vrTitle } = Astro.props;
+const { name, code: codeProp, lang = "tsx", vrSection: vrSectionProp, vrTitle } = Astro.props;
+
+// Resolve the code string: explicit prop wins, otherwise look up from name.
+const resolvedCode = codeProp ?? (name ? getDemoSource(name) : null) ?? "";
+
+// Resolve vrSection: explicit prop wins, otherwise derive from name.
+const vrSection = vrSectionProp ?? (name ? deriveVrSection(name) : undefined);
 
 // Build data attributes for visual regression targeting
 const vrAttrs = vrSection
@@ -35,6 +54,6 @@ const vrAttrs = vrSection
     <slot />
   </ComponentPreview>
   <div class="[&>.code-block]:rounded-none [&>.code-block]:rounded-b-lg [&>.code-block]:border-t-0">
-    <CodeBlock code={code} lang={lang} />
+    <CodeBlock code={resolvedCode} lang={lang} />
   </div>
 </div>

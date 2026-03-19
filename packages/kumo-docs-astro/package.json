@@ -7,6 +7,7 @@
     "./demo-metadata.json": "./dist/demo-metadata.json"
   },
   "scripts": {
+    "new:docs-page": "plop --plopfile plopfile.js docs-page",
     "dev": "astro dev",
     "build": "pnpm run codegen:demos && astro build",
     "codegen:demos": "tsx scripts/extract-demo-examples.ts",
@@ -42,6 +43,7 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "oxlint": "catalog:",
+    "plop": "4.0.4",
     "react": "catalog:",
     "react-dom": "catalog:",
     "tailwindcss": "catalog:",

@@ -70,6 +70,7 @@ const componentItems: NavItem[] = [
   { label: "Text", href: "/components/text" },
   { label: "Toast", href: "/components/toast" },
   { label: "Tooltip", href: "/components/tooltip" },
+  // PLOP_INJECT_NAV_ITEM
 ];
 
 const chartItems: NavItem[] = [

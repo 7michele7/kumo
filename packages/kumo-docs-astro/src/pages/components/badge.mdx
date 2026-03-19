@@ -23,13 +23,7 @@ import {
 {/* Demo */}
 
 <ComponentSection>
-  <ComponentExample
-    code={`<Badge variant="primary">Primary</Badge>
-<Badge variant="secondary">Secondary</Badge>
-<Badge variant="destructive">Destructive</Badge>
-<Badge variant="outline">Outline</Badge>
-<Badge variant="beta">Beta</Badge>`}
-  >
+  <ComponentExample name="BadgeVariantsDemo">
     <BadgeVariantsDemo client:visible />
   </ComponentExample>
 </ComponentSection>
@@ -64,39 +58,34 @@ export default function Example() {
 
 <Heading level={3}>Variants</Heading>
 <h4 class="mb-3 text-base font-medium">Primary</h4>
-<ComponentExample code={`<Badge variant="primary">Primary</Badge>`}>
+<ComponentExample name="BadgePrimaryDemo">
   <BadgePrimaryDemo client:visible />
 </ComponentExample>
 
 <h4 class="mb-3 text-base font-medium">Secondary</h4>
-<ComponentExample code={`<Badge variant="secondary">Secondary</Badge>`}>
+<ComponentExample name="BadgeSecondaryDemo">
   <BadgeSecondaryDemo client:visible />
 </ComponentExample>
 
 <h4 class="mb-3 text-base font-medium">Destructive</h4>
-<ComponentExample code={`<Badge variant="destructive">Destructive</Badge>`}>
+<ComponentExample name="BadgeDestructiveDemo">
   <BadgeDestructiveDemo client:visible />
 </ComponentExample>
 
 <h4 class="mb-3 text-base font-medium">Outline</h4>
-<ComponentExample code={`<Badge variant="outline">Outline</Badge>`}>
+<ComponentExample name="BadgeOutlineDemo">
   <BadgeOutlineDemo client:visible />
 </ComponentExample>
 
 <h4 class="mb-3 text-base font-medium">Beta</h4>
-<ComponentExample code={`<Badge variant="beta">Beta</Badge>`}>
+<ComponentExample name="BadgeBetaDemo">
   <BadgeBetaDemo client:visible />
 </ComponentExample>
 
 {/* In a sentence */}
 
   <Heading level={3}>In a sentence</Heading>
-  <ComponentExample
-    code={`<p className="flex items-center gap-2">
-  Workers
-  <Badge variant="beta">Beta</Badge>
-</p>`}
-  >
+  <ComponentExample name="BadgeInSentenceDemo">
     <BadgeInSentenceDemo client:visible />
   </ComponentExample>
 </ComponentSection>
