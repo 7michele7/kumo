@@ -15,6 +15,7 @@ import {
   DropdownCheckboxDemo,
   DropdownNestedDemo,
   DropdownLinkItemDemo,
+  DropdownLongListDemo,
 } from "~/components/demos/DropdownDemo";
 
 {/* Hero Demo */}
@@ -103,6 +104,16 @@ export default function Example() {
 </p>
 <ComponentExample demo="DropdownLinkItemDemo">
   <DropdownLinkItemDemo client:load />
+</ComponentExample>
+
+<Heading level={3}>Long Lists with Scrolling</Heading>
+<p>
+  When a dropdown contains many items, the popup automatically constrains to the
+  available viewport space and scrolls internally. This works on both desktop
+  and touch devices.
+</p>
+<ComponentExample demo="DropdownLongListDemo">
+  <DropdownLongListDemo client:load />
 </ComponentExample>
 
 </ComponentSection>

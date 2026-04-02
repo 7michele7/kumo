@@ -108,9 +108,9 @@ const DropdownMenuContent = React.forwardRef<
         >
           <DropdownMenuPrimitive.Popup
             className={cn(
-              "overflow-hidden bg-kumo-control text-kumo-default", // background
+              "max-h-[var(--available-height)] bg-kumo-control text-kumo-default", // background + height constraint
               "rounded-lg shadow-lg ring ring-kumo-line", // border part
-              "min-w-36 p-1.5", // spacing
+              "min-w-36", // spacing (padding moved to inner container)
               "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95", // open animation
               "data-[side=bottom]:slide-in-from-top-2", // bottom side animation
               "data-[side=left]:slide-in-from-right-2", // left side animation
@@ -120,7 +120,9 @@ const DropdownMenuContent = React.forwardRef<
               className,
             )}
           >
-            {children}
+            <div className="overflow-y-auto overscroll-contain p-1.5 max-h-[inherit]">
+              {children}
+            </div>
           </DropdownMenuPrimitive.Popup>
         </DropdownMenuPrimitive.Positioner>
       </DropdownMenuPrimitive.Portal>

@@ -170,3 +170,71 @@ export function DropdownLinkItemDemo() {
     </DropdownMenu>
   );
 }
+
+const maxHeightOptions = [
+  { label: "Default", value: "default", className: "" },
+  { label: "200px", value: "200px", className: "max-h-[200px]" },
+  { label: "300px", value: "300px", className: "max-h-[300px]" },
+  { label: "50vh", value: "50vh", className: "max-h-[50vh]" },
+];
+
+/**
+ * Dropdown with a long list to exercise scroll behavior.
+ * This ensures the popup properly constrains to available viewport
+ * space and scrolls internally on both desktop and mobile.
+ *
+ * Toggle buttons demonstrate how consumers can override the default
+ * max-height with their own constraints using the className prop.
+ */
+export function DropdownLongListDemo() {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [maxHeight, setMaxHeight] = useState("default");
+  const items = Array.from({ length: 50 }, (_, i) => `Option ${i + 1}`);
+
+  const selectedOption = maxHeightOptions.find((o) => o.value === maxHeight);
+
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-kumo-subtle">Max height:</span>
+        {maxHeightOptions.map((option) => (
+          <Button
+            key={option.value}
+            variant={maxHeight === option.value ? "primary" : "secondary"}
+            size="sm"
+            onClick={() => setMaxHeight(option.value)}
+          >
+            {option.label}
+          </Button>
+        ))}
+      </div>
+
+      <DropdownMenu>
+        <DropdownMenu.Trigger
+          render={
+            <Button>
+              {selectedIndex !== null ? items[selectedIndex] : "Select Item"}
+            </Button>
+          }
+        />
+        <DropdownMenu.Content className={selectedOption?.className}>
+          <DropdownMenu.Group>
+            <DropdownMenu.Label>
+              Items ({items.length})
+              {selectedOption?.className && ` - ${selectedOption.label}`}
+            </DropdownMenu.Label>
+            {items.map((item, index) => (
+              <DropdownMenu.Item
+                key={index}
+                onClick={() => setSelectedIndex(index)}
+                selected={selectedIndex === index}
+              >
+                {item}
+              </DropdownMenu.Item>
+            ))}
+          </DropdownMenu.Group>
+        </DropdownMenu.Content>
+      </DropdownMenu>
+    </div>
+  );
+}
