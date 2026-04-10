@@ -113,9 +113,9 @@ function TreeMenu({ items }: { items: BreadcrumbItem[] }) {
 
   // Keep these in sync with the Menu.Item layout below.
   const ROW_H = 32; // `h-8`
-  const BASE_X = 6; // root spine x (keep left of root label)
-  const INDENT = 14; // per-level indent (relaxed depth)
-  const BRANCH = 6; // horizontal branch into label (shorter)
+  const BASE_X = 12; // root spine x (give room for shifted L starts)
+  const INDENT = 14; // per-level indent
+  const BRANCH = 2; // horizontal branch into label
   const TEXT_GAP = 10; // space between branch and text
 
   const totalHeight = items.length * ROW_H;
@@ -138,7 +138,8 @@ function TreeMenu({ items }: { items: BreadcrumbItem[] }) {
         {items.map((_, i) => {
           if (i === 0) return null;
 
-          const x1 = xLevel(i - 1);
+          // Shift the vertical line left so L appears to start from middle of parent's base
+          const x1 = xLevel(i - 1) - 6;
           const x2 = xLevel(i) + BRANCH;
           const y2 = yCenter(i);
           // Avoid drawing through the root label: start below row 0 for the first connector.
