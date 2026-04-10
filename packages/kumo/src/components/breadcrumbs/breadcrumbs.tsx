@@ -684,6 +684,7 @@ export function Breadcrumb(props: BreadcrumbsCombinedProps) {
   return <CompoundBreadcrumbs {...props} />;
 }
 
+Breadcrumb.displayName = "Breadcrumbs";
 Breadcrumb.Link = Link;
 Breadcrumb.Current = Current;
 Breadcrumb.Separator = Separator;
