@@ -13,6 +13,9 @@ import {
   LayerCardDemo,
   LayerCardBasicDemo,
   LayerCardMultipleDemo,
+  LayerCardComparisonDemo,
+  LayerCardWithActionsDemo,
+  LayerCardWithFilterDemo,
 } from "~/components/demos/LayerCardDemo";
 
 {/* Hero Demo */}
@@ -74,6 +77,27 @@ export default function Example() {
 <Heading level={3}>Multiple Cards</Heading>
 <ComponentExample demo="LayerCardMultipleDemo">
   <LayerCardMultipleDemo client:visible />
+</ComponentExample>
+
+<Heading level={3}>With Actions</Heading>
+<p>Use the `actions` prop on `LayerCard.Secondary` to add buttons or menus.</p>
+<ComponentExample demo="LayerCardWithActionsDemo">
+  <LayerCardWithActionsDemo client:visible />
+</ComponentExample>
+
+<Heading level={3}>Comparison: With and Without Actions</Heading>
+<ComponentExample demo="LayerCardComparisonDemo">
+  <LayerCardComparisonDemo client:visible />
+</ComponentExample>
+
+<Heading level={3}>View Filter (Alternative to Tabs)</Heading>
+<p>
+  Instead of cramming tabs into the header, use a dropdown with radio items to
+  switch views. This pattern scales better and maintains consistent header
+  height.
+</p>
+<ComponentExample demo="LayerCardWithFilterDemo">
+  <LayerCardWithFilterDemo client:visible />
 </ComponentExample>
 
 </ComponentSection>
