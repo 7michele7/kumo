@@ -321,7 +321,7 @@ function TreeConnector() {
       height="20"
       viewBox="0 0 16 20"
       fill="none"
-      className="shrink-0 text-kumo-line"
+      className="shrink-0 text-kumo-subtle"
       aria-hidden
     >
       <path
