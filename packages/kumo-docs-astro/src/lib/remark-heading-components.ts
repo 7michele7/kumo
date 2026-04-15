@@ -12,8 +12,7 @@ import type { Root } from "mdast";
 export function remarkHeadingComponents() {
   return (tree: Root) => {
     // Inject import statements at the top of the MDX AST.
-    // Uses underscore-prefixed names to avoid conflicts with any
-    // existing imports in MDX files.
+    // Uses underscore-prefixed names to avoid conflicts with existing imports in MDX files.
     const importNode = {
       type: "mdxjsEsm",
       value: `import _H2 from '~/components/docs/mdx/H2.astro';
