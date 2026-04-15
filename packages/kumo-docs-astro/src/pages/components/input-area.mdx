@@ -181,23 +181,21 @@ export default function Example() {
 
 <h3 class="mb-2 font-semibold">Label Requirement</h3>
 
-<p class="text-kumo-default">
-  InputArea requires an accessible name via one of:
-</p>
+<p>InputArea requires an accessible name via one of:</p>
 
-<ul class="ml-4 list-disc space-y-1 text-kumo-default">
+<ul class="ml-4 list-disc space-y-1">
   <li>`label` prop (recommended)</li>
   <li>`placeholder` + `aria-label` for bare textareas</li>
   <li>`aria-labelledby` for custom label association</li>
 </ul>
 
-<p class="mt-2 text-kumo-default">
+<p class="mt-2">
   Missing accessible names trigger console warnings in development.
 </p>
 
 <h3 class="mb-2 mt-4 font-semibold">Error Association</h3>
 
-<p class="text-kumo-default">
+<p>
   Error messages are automatically associated with the textarea via ARIA
   attributes for screen reader announcement.
 </p>
