@@ -145,7 +145,7 @@ html {
   margin-top: 0;
 }
 
-/* Paragraphs — base size with relaxed line-height */
+/* Paragraphs */
 .kumo-prose :where(p):not(:where(.not-prose, .not-prose *)) {
   @apply text-base leading-relaxed;
 }
@@ -200,13 +200,13 @@ html {
   border-bottom-color: var(--color-kumo-hairline);
 }
 
-/* Table header cells — use strong text color */
+/* Table header cells */
 .kumo-prose :where(thead th) {
   color: var(--text-color-kumo-strong);
   font-weight: 600;
 }
 
-/* Blockquote — branded left border with default text */
+/* Blockquote */
 .kumo-prose :where(blockquote) {
   border-left-color: var(--color-kumo-brand);
   color: var(--text-color-kumo-default);
@@ -261,7 +261,6 @@ pre.astro-code {
    Code block copy button
    ========================================================================== */
 
-/* Copy button — positioned over code blocks */
 .code-block-copy-btn {
   @apply absolute top-3 right-3 z-10 flex items-center justify-center size-[1.625rem] rounded-md cursor-pointer border-none shadow-none select-none focus-visible:ring-1;
   background: var(--color-kumo-base);
