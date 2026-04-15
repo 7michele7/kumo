@@ -125,7 +125,7 @@ html {
   text-decoration: underline;
 }
 
-/* Heading anchor links — inherit parent heading styles */
+/* Heading anchor links */
 .kumo-prose :where(h2, h3, h4):not(:where(.not-prose, .not-prose *)) a {
   color: inherit;
   font-weight: inherit;
