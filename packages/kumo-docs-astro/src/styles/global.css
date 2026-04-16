@@ -97,6 +97,12 @@ html {
   --tw-prose-invert-td-borders: var(--color-kumo-hairline);
 }
 
+/* Reset prose styles inside not-prose wrappers */
+.kumo-prose .not-prose {
+  letter-spacing: normal;
+  line-height: normal;
+}
+
 /* Inline code styling — match existing site style */
 .kumo-prose :where(code):not(:where(pre code)) {
   font-weight: 500;
