@@ -183,10 +183,14 @@ html {
   box-shadow: none;
 }
 
-/* Pre / code blocks — don't interfere with our CodeBlock component */
-.kumo-prose :where(pre) {
+/* Pre / code blocks — better defaults for changelog <pre> without affecting
+   CodeBlock (wrapped in .not-prose) or Shiki blocks (inline styles override) */
+.kumo-prose :where(pre):not(:where(.not-prose, .not-prose *)) {
+  @apply text-base;
   border-radius: 0.5rem;
   letter-spacing: normal;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
 }
 
 /* Table styling */
