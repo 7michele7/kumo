@@ -108,11 +108,8 @@ export default function Example() {
 
 <Heading level={3}>With Popover</Heading>
 <p>
-  Compose with the
-  <a href="/components/popover" class="text-kumo-link hover:underline">
-    Popover
-  </a>
-  component to create a dropdown date picker.
+  Compose with the [Popover](/components/popover) component to create a dropdown
+  date picker.
 </p>
 <ComponentExample demo="DatePickerPopoverDemo">
   <DatePickerPopoverDemo client:load />
@@ -182,10 +179,10 @@ export function DatePickerDropdown() {
 <ComponentSection>
   <Heading level={2}>API Reference</Heading>
   <p>
-    DatePicker forwards all props to <a href="https://daypicker.dev/api/interfaces/PropsBase" class="text-kumo-link hover:underline" target="_blank" rel="noopener noreferrer">react-day-picker</a>. 
+    DatePicker forwards all props to <a href="https://daypicker.dev/api/interfaces/PropsBase" target="_blank" rel="noopener noreferrer">react-day-picker</a>. 
     Key props include:
   </p>
-  <ul class="mt-4 list-disc list-inside text-kumo-strong space-y-2">
+  <ul class="mt-4 list-disc list-inside space-y-2">
     <li>`mode` — <code class="text-xs">"single" | "multiple" | "range"</code> — Selection mode (required)</li>
     <li>`selected` — Currently selected date(s)</li>
     <li>`onChange` — Callback when selection changes</li>
@@ -197,7 +194,7 @@ export function DatePickerDropdown() {
     <li>`className` — Additional CSS classes</li>
   </ul>
   <p class="mt-4 text-kumo-subtle text-sm">
-    See the <a href="https://daypicker.dev/docs" class="text-kumo-link hover:underline" target="_blank" rel="noopener noreferrer">react-day-picker documentation</a> for the full API.
+    See the <a href="https://daypicker.dev/docs" target="_blank" rel="noopener noreferrer">react-day-picker documentation</a> for the full API.
   </p>
 
   <Heading level={3}>Differences from react-day-picker</Heading>

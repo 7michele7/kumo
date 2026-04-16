@@ -188,7 +188,7 @@ export default function Example() {
 <ComponentSection>
   <Heading level={2}>TanStack Table Integration</Heading>
   <p>
-    For advanced features like sorting, filtering, and resizable columns, integrate with <a href="https://tanstack.com/table" class="text-kumo-link hover:underline" target="_blank" rel="noopener noreferrer">TanStack Table</a>. The Table component is designed to work seamlessly with TanStack's headless API.
+    For advanced features like sorting, filtering, and resizable columns, integrate with <a href="https://tanstack.com/table" target="_blank" rel="noopener noreferrer">TanStack Table</a>. The Table component is designed to work seamlessly with TanStack's headless API.
   </p>
 
 ```tsx
@@ -256,18 +256,18 @@ function DataTable({ data, columns }) {
   <Heading level={2}>Accessibility</Heading>
 
 <h3 class="mb-2 font-semibold">Semantic HTML</h3>
-<p class="text-kumo-strong">
+<p>
   Table uses semantic `<table>`, `<thead>`, `<tbody>`, `<th>`, and `<td>` elements for proper screen reader navigation.
 </p>
 
 <h3 class="mb-2 mt-4 font-semibold">Checkbox Labels</h3>
-<p class="text-kumo-strong">
+<p>
   Always provide `aria-label` for `Table.CheckHead` and `Table.CheckCell` to
   describe their purpose.
 </p>
 
 <h3 class="mb-2 mt-4 font-semibold">Keyboard Navigation</h3>
-<p class="text-kumo-strong">
+<p>
   <kbd class="rounded bg-kumo-control px-1.5 py-0.5">Tab</kbd> moves focus
   through interactive elements. Checkboxes respond to{" "}
   <kbd class="rounded bg-kumo-control px-1.5 py-0.5">Space</kbd>.
