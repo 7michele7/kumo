@@ -187,6 +187,8 @@ html {
    CodeBlock (wrapped in .not-prose) or Shiki blocks (inline styles override) */
 .kumo-prose :where(pre):not(:where(.not-prose, .not-prose *)) {
   @apply text-base;
+  background-color: var(--tw-prose-pre-bg);
+  border: 1px solid var(--color-kumo-hairline);
   border-radius: 0.5rem;
   letter-spacing: normal;
   padding: 0.75rem 1rem;
