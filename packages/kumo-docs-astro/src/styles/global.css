@@ -108,6 +108,7 @@ html {
   font-family:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
+  letter-spacing: normal;
 }
 
 /* Remove backtick decoration from inline code */
@@ -185,6 +186,7 @@ html {
 /* Pre / code blocks — don't interfere with our CodeBlock component */
 .kumo-prose :where(pre) {
   border-radius: 0.5rem;
+  letter-spacing: normal;
 }
 
 /* Table styling */
