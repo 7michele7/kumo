@@ -1,4 +1,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { execSync } from "node:child_process";
+import { readdirSync } from "node:fs";
+import { getComponentBirthDates } from "./component-birth-dates";
 
 vi.mock("node:child_process", () => ({
   execSync: vi.fn(),
@@ -7,10 +10,6 @@ vi.mock("node:child_process", () => ({
 vi.mock("node:fs", () => ({
   readdirSync: vi.fn(),
 }));
-
-import { execSync } from "node:child_process";
-import { readdirSync } from "node:fs";
-import { getComponentBirthDates } from "./component-birth-dates";
 
 const mockedExecSync = vi.mocked(execSync);
 const mockedReaddirSync = vi.mocked(readdirSync);
