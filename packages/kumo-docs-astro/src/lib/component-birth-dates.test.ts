@@ -15,19 +15,48 @@ import { getComponentBirthDates } from "./component-birth-dates";
 const mockedExecSync = vi.mocked(execSync);
 const mockedReaddirSync = vi.mocked(readdirSync);
 
-// Returns an ISO timestamp `daysAgo` days before now.
+// Returns an ISO timestamp `daysAgo` days before now, with an explicit timezone offset
+// so it matches the shape of `git log --format=%aI` output.
 function daysAgoISO(daysAgo: number): string {
-  return new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+  const d = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
+  // Format as YYYY-MM-DDTHH:mm:ss+00:00
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}` +
+    `T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}+00:00`
+  );
 }
 
 // Build a minimal Dirent-like object for readdirSync with withFileTypes.
-// `kind` lets the same helper stand in for directories (component/block scan) or files (chart page scan).
 function direntFor(name: string, kind: "dir" | "file") {
   return {
     name,
     isDirectory: () => kind === "dir",
     isFile: () => kind === "file",
   } as unknown as ReturnType<typeof readdirSync>[number];
+}
+
+// Configure the execSync mock to handle both the shallow-clone probe and the git log call.
+function setupExecSyncMock(opts: {
+  isShallow?: boolean;
+  gitLogOutput?: string;
+  gitLogThrows?: boolean;
+}) {
+  const { isShallow = false, gitLogOutput = "", gitLogThrows = false } = opts;
+  mockedExecSync.mockImplementation((cmd) => {
+    const cmdStr = String(cmd);
+    if (cmdStr.includes("--is-shallow-repository")) {
+      return (isShallow ? "true\n" : "false\n") as never;
+    }
+    if (cmdStr.includes("--show-toplevel")) {
+      return "/repo-root\n" as never;
+    }
+    if (cmdStr.includes("--diff-filter=A")) {
+      if (gitLogThrows) throw new Error("git log failed");
+      return gitLogOutput as never;
+    }
+    return "" as never;
+  });
 }
 
 describe("getComponentBirthDates", () => {
@@ -42,19 +71,14 @@ describe("getComponentBirthDates", () => {
   });
 
   it("returns empty maps on shallow clone", () => {
-    mockedExecSync.mockImplementation((cmd) => {
-      if (String(cmd).includes("--is-shallow-repository")) {
-        return "true\n" as never;
-      }
-      return "" as never;
-    });
+    setupExecSyncMock({ isShallow: true });
 
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const result = getComponentBirthDates();
 
     expect(result).toEqual({ components: {}, blocks: {}, charts: {} });
-    // Only the shallow-repo probe should have been invoked — no further git calls.
+    // Only the shallow-repo probe should have been invoked — no git log call.
     expect(mockedExecSync).toHaveBeenCalledTimes(1);
     expect(String(mockedExecSync.mock.calls[0][0])).toContain(
       "--is-shallow-repository",
@@ -69,22 +93,18 @@ describe("getComponentBirthDates", () => {
     const recent = daysAgoISO(30);
     const old = daysAgoISO(90);
 
-    mockedReaddirSync.mockImplementation((dir) => {
-      if (String(dir).endsWith("/components")) {
-        return [
-          direntFor("recent-component", "dir"),
-          direntFor("old-component", "dir"),
-        ] as never;
-      }
-      return [] as never;
-    });
+    const gitLogOutput = [
+      recent,
+      "",
+      "packages/kumo/src/components/recent-component/RecentComponent.tsx",
+      "",
+      old,
+      "",
+      "packages/kumo/src/components/old-component/OldComponent.tsx",
+      "",
+    ].join("\n");
 
-    mockedExecSync.mockImplementation((cmd) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes("recent-component")) return recent as never;
-      if (cmdStr.includes("old-component")) return old as never;
-      return "" as never;
-    });
+    setupExecSyncMock({ gitLogOutput });
 
     const result = getComponentBirthDates();
 
@@ -94,11 +114,8 @@ describe("getComponentBirthDates", () => {
     expect(result.charts).toEqual({});
   });
 
-  it("swallows per-entry git failures without poisoning the result", () => {
-    mockedReaddirSync.mockReturnValue([direntFor("some-dir", "dir")] as never);
-    mockedExecSync.mockImplementation(() => {
-      throw new Error("git not available");
-    });
+  it("returns empty maps when git log throws", () => {
+    setupExecSyncMock({ gitLogThrows: true });
 
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     expect(getComponentBirthDates()).toEqual({
@@ -109,109 +126,65 @@ describe("getComponentBirthDates", () => {
     warnSpy.mockRestore();
   });
 
-  it("returns empty maps when readdirSync throws", () => {
-    mockedReaddirSync.mockImplementation(() => {
-      throw new Error("read failure");
-    });
+  it("returns empty maps when git log output is empty", () => {
+    setupExecSyncMock({ gitLogOutput: "" });
 
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    expect(getComponentBirthDates()).toEqual({
-      components: {},
-      blocks: {},
-      charts: {},
-    });
-    warnSpy.mockRestore();
+    const result = getComponentBirthDates();
+
+    expect(result).toEqual({ components: {}, blocks: {}, charts: {} });
   });
 
-  it("skips non-directory entries", () => {
+  it("parses components and blocks correctly from a single git log output", () => {
     const recent = daysAgoISO(10);
 
-    mockedReaddirSync.mockImplementation((dir) => {
-      if (String(dir).endsWith("/components")) {
-        return [
-          direntFor("README.md", "file"),
-          direntFor("my-component", "dir"),
-        ] as never;
-      }
-      return [] as never;
-    });
+    const gitLogOutput = [
+      recent,
+      "",
+      "packages/kumo/src/components/my-component/MyComponent.tsx",
+      "packages/kumo/src/components/my-component/index.ts",
+      "packages/kumo/src/blocks/my-block/MyBlock.tsx",
+      "",
+    ].join("\n");
 
-    mockedExecSync.mockImplementation((cmd) => {
-      if (String(cmd).includes("my-component")) return recent as never;
-      return "" as never;
-    });
+    setupExecSyncMock({ gitLogOutput });
 
     const result = getComponentBirthDates();
 
     expect(result.components).toEqual({ "my-component": recent });
-    const gitCallsForFile = mockedExecSync.mock.calls.filter((c) =>
-      String(c[0]).includes("README.md"),
-    );
-    expect(gitCallsForFile).toHaveLength(0);
+    expect(result.blocks).toEqual({ "my-block": recent });
   });
 
-  it("skips entries with empty git output", () => {
-    const recent = daysAgoISO(5);
+  it("uses the oldest (first-added) date when multiple commits touch the same component", () => {
+    // git log is newest-first; the last (oldest) date written to the map should win.
+    const newer = daysAgoISO(10);
+    const older = daysAgoISO(40);
 
-    mockedReaddirSync.mockImplementation((dir) => {
-      if (String(dir).endsWith("/components")) {
-        return [
-          direntFor("with-history", "dir"),
-          direntFor("no-history", "dir"),
-        ] as never;
-      }
-      return [] as never;
-    });
+    const gitLogOutput = [
+      newer,
+      "",
+      "packages/kumo/src/components/shared/new-file.tsx",
+      "",
+      older,
+      "",
+      "packages/kumo/src/components/shared/original.tsx",
+      "",
+    ].join("\n");
 
-    mockedExecSync.mockImplementation((cmd) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes("with-history")) return recent as never;
-      return "" as never;
-    });
+    setupExecSyncMock({ gitLogOutput });
 
     const result = getComponentBirthDates();
 
-    expect(result.components).toEqual({ "with-history": recent });
-    expect(result.components).not.toHaveProperty("no-history");
+    expect(result.components).toEqual({ shared: older });
   });
 
-  it("skips entries with invalid date strings without crashing", () => {
-    const recent = daysAgoISO(5);
-
-    mockedReaddirSync.mockImplementation((dir) => {
-      if (String(dir).endsWith("/components")) {
-        return [
-          direntFor("ok-component", "dir"),
-          direntFor("broken-component", "dir"),
-        ] as never;
-      }
-      return [] as never;
-    });
-
-    mockedExecSync.mockImplementation((cmd) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes("broken-component")) return "not-a-date" as never;
-      if (cmdStr.includes("ok-component")) return recent as never;
-      return "" as never;
-    });
-
-    const result = getComponentBirthDates();
-
-    expect(result.components).toEqual({ "ok-component": recent });
-    expect(result.components).not.toHaveProperty("broken-component");
-  });
-
-  it("scans chart page files and keys them by filename without extension", () => {
+  it("only includes chart pages that currently exist on disk", () => {
     const recent = daysAgoISO(10);
-    const old = daysAgoISO(120);
 
+    // The allowlist only has `timeseries` — `deleted` is in git log but no longer on disk.
     mockedReaddirSync.mockImplementation((dir) => {
       if (String(dir).endsWith("/pages/charts")) {
         return [
-          direntFor("index.mdx", "file"),
           direntFor("timeseries.mdx", "file"),
-          direntFor("custom.mdx", "file"),
-          // A subdirectory and unrelated file should both be ignored.
           direntFor("assets", "dir"),
           direntFor("notes.txt", "file"),
         ] as never;
@@ -219,23 +192,88 @@ describe("getComponentBirthDates", () => {
       return [] as never;
     });
 
-    mockedExecSync.mockImplementation((cmd) => {
-      const cmdStr = String(cmd);
-      if (cmdStr.includes("timeseries.mdx")) return recent as never;
-      if (cmdStr.includes("index.mdx")) return recent as never;
-      if (cmdStr.includes("custom.mdx")) return old as never;
-      return "" as never;
-    });
+    const gitLogOutput = [
+      recent,
+      "",
+      "packages/kumo-docs-astro/src/pages/charts/timeseries.mdx",
+      "packages/kumo-docs-astro/src/pages/charts/deleted.astro",
+      "",
+    ].join("\n");
+
+    setupExecSyncMock({ gitLogOutput });
 
     const result = getComponentBirthDates();
 
-    expect(result.charts).toEqual({
-      index: recent,
-      timeseries: recent,
-    });
-    expect(result.charts).not.toHaveProperty("custom");
-    // Subdirectories and non-.mdx/.astro files must not be scanned.
-    expect(result.charts).not.toHaveProperty("assets");
-    expect(result.charts).not.toHaveProperty("notes");
+    expect(result.charts).toEqual({ timeseries: recent });
+    expect(result.charts).not.toHaveProperty("deleted");
+  });
+
+  it("skips malformed date lines without crashing", () => {
+    const recent = daysAgoISO(5);
+
+    // "not-a-date" doesn't match the ISO regex, so it shouldn't become currentDate
+    // and the file line that follows should be ignored (no active date).
+    // Then a valid date + file pair should still be picked up.
+    const gitLogOutput = [
+      "not-a-date",
+      "",
+      "packages/kumo/src/components/orphaned/orphan.tsx",
+      "",
+      recent,
+      "",
+      "packages/kumo/src/components/ok-component/OkComponent.tsx",
+      "",
+    ].join("\n");
+
+    setupExecSyncMock({ gitLogOutput });
+
+    const result = getComponentBirthDates();
+
+    expect(result.components).toEqual({ "ok-component": recent });
+    expect(result.components).not.toHaveProperty("orphaned");
+  });
+
+  it("ignores flat files inside the components and blocks directories", () => {
+    const recent = daysAgoISO(10);
+
+    const gitLogOutput = [
+      recent,
+      "",
+      "packages/kumo/src/components/AGENTS.md",
+      "packages/kumo/src/components/real/real.tsx",
+      "packages/kumo/src/blocks/README.md",
+      "packages/kumo/src/blocks/my-block/Block.tsx",
+      "",
+    ].join("\n");
+
+    setupExecSyncMock({ gitLogOutput });
+
+    const result = getComponentBirthDates();
+
+    expect(result.components).toEqual({ real: recent });
+    expect(result.components).not.toHaveProperty("AGENTS.md");
+    expect(result.blocks).toEqual({ "my-block": recent });
+    expect(result.blocks).not.toHaveProperty("README.md");
+  });
+
+  it("ignores paths outside the tracked prefixes", () => {
+    const recent = daysAgoISO(10);
+
+    const gitLogOutput = [
+      recent,
+      "",
+      "packages/kumo/src/components/real/real.tsx",
+      "packages/other/unrelated.ts",
+      "README.md",
+      "",
+    ].join("\n");
+
+    setupExecSyncMock({ gitLogOutput });
+
+    const result = getComponentBirthDates();
+
+    expect(result.components).toEqual({ real: recent });
+    expect(result.blocks).toEqual({});
+    expect(result.charts).toEqual({});
   });
 });
