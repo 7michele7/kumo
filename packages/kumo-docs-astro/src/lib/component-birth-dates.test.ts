@@ -15,12 +15,13 @@ import { getComponentBirthDates } from "./component-birth-dates";
 const mockedExecSync = vi.mocked(execSync);
 const mockedReaddirSync = vi.mocked(readdirSync);
 
-// Returns an ISO timestamp `daysAgo` days before now, with an explicit timezone offset
-// so it matches the shape of `git log --format=%aI` output.
+const pad = (n: number) => String(n).padStart(2, "0");
+
+// Returns an ISO timestamp `daysAgo` days before now, with an explicit timezone offset so it matches the shape of `git log --format=%aI` output.
 function daysAgoISO(daysAgo: number): string {
   const d = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
+
   // Format as YYYY-MM-DDTHH:mm:ss+00:00
-  const pad = (n: number) => String(n).padStart(2, "0");
   return (
     `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}` +
     `T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}+00:00`
@@ -43,18 +44,24 @@ function setupExecSyncMock(opts: {
   gitLogThrows?: boolean;
 }) {
   const { isShallow = false, gitLogOutput = "", gitLogThrows = false } = opts;
+
   mockedExecSync.mockImplementation((cmd) => {
     const cmdStr = String(cmd);
+
     if (cmdStr.includes("--is-shallow-repository")) {
       return (isShallow ? "true\n" : "false\n") as never;
     }
+
     if (cmdStr.includes("--show-toplevel")) {
       return "/repo-root\n" as never;
     }
+
     if (cmdStr.includes("--diff-filter=A")) {
       if (gitLogThrows) throw new Error("git log failed");
+
       return gitLogOutput as never;
     }
+
     return "" as never;
   });
 }
@@ -118,6 +125,7 @@ describe("getComponentBirthDates", () => {
     setupExecSyncMock({ gitLogThrows: true });
 
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
     expect(getComponentBirthDates()).toEqual({
       components: {},
       blocks: {},
@@ -189,6 +197,7 @@ describe("getComponentBirthDates", () => {
           direntFor("notes.txt", "file"),
         ] as never;
       }
+
       return [] as never;
     });
 

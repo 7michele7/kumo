@@ -8,11 +8,13 @@ describe("isNewItem", () => {
       blocks: {},
       charts: {},
     };
+
     expect(isNewItem("/components/sidebar", newItems)).toBe(true);
   });
 
   it("returns false for a component not in the map", () => {
     const newItems: NewItems = { components: {}, blocks: {}, charts: {} };
+
     expect(isNewItem("/components/badge", newItems)).toBe(false);
   });
 
@@ -22,6 +24,7 @@ describe("isNewItem", () => {
       blocks: { "page-header": "2026-04-01T00:00:00Z" },
       charts: {},
     };
+
     expect(isNewItem("/blocks/page-header", newItems)).toBe(true);
   });
 
@@ -31,6 +34,7 @@ describe("isNewItem", () => {
       blocks: {},
       charts: { timeseries: "2026-04-01T00:00:00Z" },
     };
+
     expect(isNewItem("/charts/timeseries", newItems)).toBe(true);
     expect(isNewItem("/charts/custom", newItems)).toBe(false);
     expect(isNewItem("/charts", newItems)).toBe(false);
@@ -42,12 +46,14 @@ describe("isNewItem", () => {
       blocks: {},
       charts: { index: "2026-04-01T00:00:00Z" },
     };
+
     expect(isNewItem("/charts", newItems)).toBe(true);
     expect(isNewItem("/charts/timeseries", newItems)).toBe(false);
   });
 
   it("returns false for static pages", () => {
     const newItems: NewItems = { components: {}, blocks: {}, charts: {} };
+
     expect(isNewItem("/getting-started", newItems)).toBe(false);
     expect(isNewItem("/", newItems)).toBe(false);
     expect(isNewItem("/installation", newItems)).toBe(false);
@@ -65,6 +71,7 @@ describe("isNewItem", () => {
       blocks: {},
       charts: {},
     };
+
     expect(isNewItem("/components", newItems)).toBe(false);
     expect(isNewItem("/blocks", newItems)).toBe(false);
   });
