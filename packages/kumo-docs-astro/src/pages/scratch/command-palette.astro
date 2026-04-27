@@ -1,0 +1,10 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { CommandPaletteDashboardDemo } from "../../components/demos/CommandPaletteDemo";
+---
+
+<BaseLayout title="Command Palette Scratch">
+  <main class="flex min-h-screen items-center justify-center bg-kumo-canvas">
+    <CommandPaletteDashboardDemo client:only="react" />
+  </main>
+</BaseLayout>

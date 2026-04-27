@@ -14,6 +14,7 @@ import {
   CommandPaletteSimpleDemo,
   CommandPaletteLoadingDemo,
   CommandPaletteResultItemDemo,
+  CommandPaletteDashboardDemo,
 } from "~/components/demos/CommandPaletteDemo";
 
 {/* Hero Demo */}
@@ -161,6 +162,18 @@ export default function Example() {
   </p>
   <ComponentExample demo="CommandPaletteResultItemDemo">
     <CommandPaletteResultItemDemo client:visible />
+  </ComponentExample>
+
+### Cloudflare Dashboard
+
+  <p>
+    Reproduces the Cloudflare dashboard command palette: a "Go to" group with
+    breadcrumb-style navigation, plus a "Search tips" group of `prefix:`
+    shortcuts (e.g. `aig:`, `d1:`) that drill into resources scoped to the
+    currently selected account. Type `account:` to switch between accounts.
+  </p>
+  <ComponentExample demo="CommandPaletteDashboardDemo">
+    <CommandPaletteDashboardDemo client:visible />
   </ComponentExample>
 </ComponentSection>
 
