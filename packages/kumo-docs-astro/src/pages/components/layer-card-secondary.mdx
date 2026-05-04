@@ -1,0 +1,430 @@
+---
+layout: ~/layouts/MdxDocLayout.astro
+title: "LayerCard.Secondary — composition recommendation"
+description: "A canonical, composable pattern for the LayerCard secondary header that covers the majority of audited usages without prop ambiguity."
+sourceFile: "components/layer-card"
+---
+
+import ComponentExample from "~/components/docs/ComponentExample.astro";
+import ComponentSection from "~/components/docs/ComponentSection.astro";
+import {
+  LayerCardSecondaryProposalDemo,
+  LayerCardSecondaryLabelOnlyDemo,
+  LayerCardSecondaryTitleAdornmentsDemo,
+  LayerCardSecondaryWithBadgeDemo,
+  LayerCardSecondaryToggleDemo,
+  LayerCardSecondaryToolbarDemo,
+  LayerCardSecondaryToolbarSelectDemo,
+  LayerCardSecondaryAsLinkDemo,
+  LayerCardSecondaryFooterDemo,
+  LayerCardSecondarySkeletonDemo,
+  LayerCardSecondaryHeightConsistencyDemo,
+  LayerCardSecondaryAntiPatternDemo,
+} from "~/components/demos/LayerCardSecondaryProposalDemo";
+
+{/* Status banner */}
+
+<ComponentSection>
+
+> **Status:** proposal. The behavior shown below is prototyped locally in the
+> demo file using a stand-in `Secondary` wrapper; this page is the design
+> artifact we'll use to align teams before promoting the changes onto the
+> real `LayerCard` component.
+
+</ComponentSection>
+
+{/* Why */}
+
+<ComponentSection>
+
+## Why this exists
+
+An audit of `LayerCard.Secondary` across our largest consumer found
+**~360 usages in ~140 files**. The current API surface is one slot:
+
+```ts
+type LayerCardSectionProps = PropsWithChildren<{ className?: string }>;
+```
+
+That minimal API has had three predictable consequences:
+
+1. **40+ usages reimplement `flex items-center justify-between`** by hand —
+   each with two grouping `<div>`s — to lay out a title on the left and
+   actions on the right.
+2. **Heights are inconsistent.** `Secondary`'s height comes from `p-4` plus
+   intrinsic content size, so an `h2` heading, a default-size button, a
+   `Switch`, and a `<Tabs>` strip all produce visibly different `Secondary`
+   heights across the product.
+3. **The slot has become a junk drawer.** Tabs, time pickers, switches,
+   tooltips, badges, pagination, skeletons, headings, and link affordances
+   have all been crammed in, each composed differently.
+
+This page proposes the smallest set of changes that fix all three.
+
+</ComponentSection>
+
+{/* Recommendation */}
+
+<ComponentSection>
+
+## Recommendation
+
+Three changes, all to the existing `LayerCard.Secondary`:
+
+1. **Pin the height.** Replace `p-4` with `h-14 px-4` (56px). Vertical
+   sizing comes from `h-14`, not padding, so content height variation does
+   not affect the strip height.
+2. **Add `LayerCard.Title` and `LayerCard.Actions` sub-components.**
+   Composition only — no slot props on `Secondary`.
+3. **Support `render` on `Secondary`** (the same polymorphic pattern
+   already used by `LayerCard` itself, `Tooltip`, `Button`, etc.). This
+   covers the "entire header is a link" case without a separate component.
+   Hover, focus, and cursor affordances activate automatically when the
+   rendered element has an `href`, via Tailwind attribute selectors baked
+   into the base classes.
+
+The recommended composition:
+
+```tsx
+<LayerCard>
+  <LayerCard.Secondary>
+    <LayerCard.Title>Section name</LayerCard.Title>
+    <LayerCard.Actions>
+      <Button size="sm">Configure</Button>
+    </LayerCard.Actions>
+  </LayerCard.Secondary>
+  <LayerCard.Primary>…</LayerCard.Primary>
+</LayerCard>
+```
+
+<ComponentExample demo="LayerCardSecondaryProposalDemo">
+  <LayerCardSecondaryProposalDemo client:visible />
+</ComponentExample>
+
+</ComponentSection>
+
+{/* Height invariant */}
+
+<ComponentSection>
+
+## The height invariant
+
+Every `Secondary` strip in the product is exactly **56px** tall. This is
+non-negotiable. Every demo on this page renders at the same header height —
+if any of the rows below visibly differs from the others, the proposal has
+failed and the offending child needs a smaller variant in kumo (see below).
+
+<ComponentExample demo="LayerCardSecondaryHeightConsistencyDemo">
+  <LayerCardSecondaryHeightConsistencyDemo client:visible />
+</ComponentExample>
+
+The implication: any kumo component that lives in `Actions` must have a
+size variant that fits within 56px (with 12px breathing room top and
+bottom for a 32px control). Anything that doesn't fit is the child's
+problem to solve, not `Secondary`'s.
+
+### Required component tweaks
+
+The audit surfaced children that don't currently have a small-enough
+variant. Promoting this proposal requires the following changes elsewhere
+in kumo. Each is a separate, scoped piece of work.
+
+| Component       | Current state                                   | Tweak needed                                                                  | Audit signal                                                                |
+| --------------- | ----------------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `Tabs`          | `underline` and `segmented` variants both ~40px | Add a small variant (`size="sm"` or `compact`) tuned for 32px control height. | Multiple consumers override with `[&_[role=tablist]]:h-9` or similar.        |
+| `Select`        | Default ~40px tall                              | Confirm `size="sm"` fits and is the documented choice for `Actions`.          | ~53 trailing-Select usages in audit.                                         |
+| `TimeframePicker` (block) | App-level block, not a kumo primitive | Calibrate height to match `sm` Button when used as trailing chrome.          | Analytics pages use this in headers.                                         |
+| `Pagination`    | Variable height                                 | Block-level decision: should Pagination ever live in `Secondary`?             | 6 usages — likely belong in `Footer`-style Secondary, not header Secondary.  |
+
+These are tracked separately. The `Title`/`Actions`/`render` proposal can
+ship without all of them — the height invariant simply forecloses the
+problematic combinations until the small variants exist.
+
+</ComponentSection>
+
+{/* Why composition */}
+
+<ComponentSection>
+
+## Why composition (not props)
+
+There was a real temptation to express this as:
+
+```tsx
+{/* DO NOT BUILD THIS */}
+<LayerCard.Secondary
+  title="Section name"
+  icon={<CodeIcon />}
+  badge={<Badge>Beta</Badge>}
+  tooltip="Help text"
+  actions={<Button>Configure</Button>}
+/>
+```
+
+Shorter, but every prop becomes a question:
+
+- What if a consumer passes `title` *and* `children`?
+- What if `actions` is an array vs. a single element vs. a fragment?
+- How do you express two badges, or a leading link plus a trailing menu?
+- How do you control the order of icon, label, and badge inside the title?
+
+Composition answers all of these by construction: JSX order is visual
+order, and there is exactly one way to put something somewhere.
+
+### Why this isn't more verbose than today
+
+The audit's worst offenders look like this today:
+
+```tsx
+<LayerCard.Secondary className="flex items-center justify-between">
+  <div className="flex items-center gap-2">
+    <span>Cache Reserve</span>
+    <Badge variant="beta">Beta</Badge>
+  </div>
+  <div className="flex shrink-0 items-center gap-2">
+    <Loader size="sm" />
+    <Switch size="sm" />
+  </div>
+</LayerCard.Secondary>
+```
+
+Under the recommendation:
+
+```tsx
+<LayerCard.Secondary>
+  <LayerCard.Title>
+    Cache Reserve
+    <Badge variant="beta">Beta</Badge>
+  </LayerCard.Title>
+  <LayerCard.Actions>
+    <Loader size="sm" />
+    <Switch size="sm" />
+  </LayerCard.Actions>
+</LayerCard.Secondary>
+```
+
+Same line count, **fewer concepts** (no className override, no grouping
+divs, no `shrink-0` magic), **more semantics** (real heading element), and
+the layout intent is named instead of inferred from a Tailwind incantation.
+
+</ComponentSection>
+
+{/* Coverage */}
+
+<ComponentSection>
+
+## Coverage of the audited archetypes
+
+The recommendation is only worth adopting if it covers what teams actually
+build today. Each demo below corresponds to a category from the audit.
+
+### 1. Label only
+
+The simplest case. `Title` adds the semantic heading element.
+
+<ComponentExample demo="LayerCardSecondaryLabelOnlyDemo">
+  <LayerCardSecondaryLabelOnlyDemo client:visible />
+</ComponentExample>
+
+### 2. Title with leading icon and inline tooltip
+
+Sibling composition inside `Title` — no slot props. The `gap-1.5` between
+children keeps icon, label, and tooltip mark cohesive.
+
+<ComponentExample demo="LayerCardSecondaryTitleAdornmentsDemo">
+  <LayerCardSecondaryTitleAdornmentsDemo client:visible />
+</ComponentExample>
+
+### 3. Status badge alongside title
+
+Beta / New / status badges live as sibling children inside `Title`.
+
+<ComponentExample demo="LayerCardSecondaryWithBadgeDemo">
+  <LayerCardSecondaryWithBadgeDemo client:visible />
+</ComponentExample>
+
+### 4. Toggle / settings card
+
+The settings-with-toggle archetype (~30 instances in production usage).
+Same shape as the hero — the `Switch` simply lives in `Actions`.
+
+<ComponentExample demo="LayerCardSecondaryToggleDemo">
+  <LayerCardSecondaryToggleDemo client:visible />
+</ComponentExample>
+
+### 5. Toolbar / segmented control
+
+Tabs, segmented controls, time pickers — anything that is the trailing
+affordance of a card header — go in `Actions`. **Note:** kumo's current
+`Tabs` does not yet have a size variant tuned for 56px `Secondary`; this
+is one of the [required component tweaks](#the-height-invariant).
+
+<ComponentExample demo="LayerCardSecondaryToolbarDemo">
+  <LayerCardSecondaryToolbarDemo client:visible />
+</ComponentExample>
+
+#### Alternative: `size="sm"` Select
+
+Until the small `Tabs` variant lands, `Select size="sm"` is the recommended
+trailing control for ordinal pickers. It fits the 56px strip cleanly today
+and is the right choice regardless once the option count exceeds 2–3 or
+labels get long.
+
+<ComponentExample demo="LayerCardSecondaryToolbarSelectDemo">
+  <LayerCardSecondaryToolbarSelectDemo client:visible />
+</ComponentExample>
+
+### 6. The whole header is a link
+
+Use the `render` prop pattern already idiomatic in kumo:
+
+```tsx
+<LayerCard.Secondary render={<a href="/docs/cache-reserve" />}>
+  <LayerCard.Title>Browse docs</LayerCard.Title>
+  <ArrowRightIcon size={16} className="ml-auto" />
+</LayerCard.Secondary>
+```
+
+Why `render` and not a separate `LayerCard.SecondaryLink`:
+
+- **Symmetric.** `LayerCard` itself, `Tooltip`, `Button`, etc. all use
+  `render`. Adding it to `Secondary` is one more place where the same
+  pattern works.
+- **Polymorphic.** `render={<Link to="/x" />}` integrates with React
+  Router, `render={<a download />}` works for downloads, etc. A separate
+  `SecondaryLink` would need its own `as` escape hatch and we're back to
+  polymorphism.
+- **No proliferation.** If we add `SecondaryLink`, why not `PrimaryLink`,
+  `LayerCardLink`? `render` keeps the surface flat.
+- **Affordances are automatic.** `Secondary`'s base classes include
+  Tailwind attribute selectors (`[&[href]]:hover:bg-kumo-fill-hover`,
+  `[&[href]]:focus-visible:outline ...`, `[&[href]]:cursor-pointer`)
+  that activate only when the rendered element has an `href`. The
+  consumer doesn't have to remember to add hover styles.
+- **Valid HTML.** `Secondary` *becomes* the `<a>` rather than wrapping
+  one — no `<a><div>...</div></a>` nesting.
+
+The trailing affordance must be a non-interactive element (icon, text). A
+linked `Secondary` cannot contain `<button>` / `<Switch>` / `<Tabs>` —
+that is invalid HTML and breaks the "click anywhere" contract. A lint
+rule and dev-mode warning are part of the implementation work.
+
+<ComponentExample demo="LayerCardSecondaryAsLinkDemo">
+  <LayerCardSecondaryAsLinkDemo client:visible />
+</ComponentExample>
+
+### 7. Footer pattern (action bar)
+
+`Secondary` placed below `Primary` is a footer. Same component, same
+styling — no `LayerCard.Footer` alias to maintain. Use
+`render={<footer />}` for assistive-tech semantics.
+
+A bare `Actions` block is the canonical Cancel/Submit row.
+
+<ComponentExample demo="LayerCardSecondaryFooterDemo">
+  <LayerCardSecondaryFooterDemo client:visible />
+</ComponentExample>
+
+### 8. Skeleton / loading state
+
+No `loading` prop. Place a `SkeletonLine` where the `Title` would go. This
+replaces ~10 hand-rolled `animate-pulse` divs in the audit.
+
+<ComponentExample demo="LayerCardSecondarySkeletonDemo">
+  <LayerCardSecondarySkeletonDemo client:visible />
+</ComponentExample>
+
+</ComponentSection>
+
+{/* Anti-pattern */}
+
+<ComponentSection>
+
+## What we are retiring
+
+This is the dominant shape `LayerCard.Secondary` takes in production today.
+
+<ComponentExample demo="LayerCardSecondaryAntiPatternDemo">
+  <LayerCardSecondaryAntiPatternDemo client:visible />
+</ComponentExample>
+
+```tsx
+<LayerCard.Secondary className="flex items-center justify-between">
+  <div className="flex items-center gap-2">…</div>
+  <div className="flex shrink-0 items-center gap-2">…</div>
+</LayerCard.Secondary>
+```
+
+Compare its height to any of the recommended demos above — the unpinned
+default `p-4` produces a visibly different strip than a 56px header
+elsewhere in the same product.
+
+</ComponentSection>
+
+{/* Out of scope */}
+
+<ComponentSection>
+
+## Things this proposal deliberately does **not** add
+
+| Considered                                           | Decision | Why                                                                                                                  |
+| ---------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- |
+| `icon` / `tooltip` / `badge` props on `Title`        | **No**   | Each prop is a redundant axis next to children → broken-state ambiguity. Compose them inline.                        |
+| `loading` prop on `Secondary` with auto-skeleton     | **No**   | Skeleton dimensions are page-specific. Compose `SkeletonLine` directly.                                              |
+| Explicit `LayerCard.Footer`                          | **No**   | Visually identical to `Secondary`; introducing a second name splits usage without adding meaning.                    |
+| Dedicated `LayerCard.SecondaryLink`                  | **No**   | The `render` prop is the right primitive. A dedicated component would create proliferation and lose RR/Next compat. |
+| `LayerCard.Header.Toolbar` slot                      | **No**   | `Actions` already handles this. Tabs are just children.                                                              |
+| Tabs that switch the *card body*                     | **Out of scope** | Crams content navigation into the header; different concern, different audit.                                        |
+
+</ComponentSection>
+
+{/* Migration */}
+
+<ComponentSection>
+
+## Migration shape
+
+Once promoted, a codemod can handle the mechanical part of the 40+
+`justify-between` cases:
+
+```
+<LayerCard.Secondary className="flex items-center justify-between">
+  <div className="flex items-center gap-2">$LEFT</div>
+  <div className="flex items-center gap-2">$RIGHT</div>
+</LayerCard.Secondary>
+
+  ↓
+
+<LayerCard.Secondary>
+  <LayerCard.Title>$LEFT</LayerCard.Title>
+  <LayerCard.Actions>$RIGHT</LayerCard.Actions>
+</LayerCard.Secondary>
+```
+
+The height change applies automatically (no callsite work). Anything that
+doesn't fit the new fixed height surfaces as visual regression in
+screenshot tests, gets routed to the relevant component-tweak workstream.
+
+</ComponentSection>
+
+{/* Open questions */}
+
+<ComponentSection>
+
+## Open questions
+
+1. **`Title` default tag — `<h3>` or `<h2>`?** Most cards live inside a
+   page that already owns `<h1>` and `<h2>`, so `<h3>` is the safer
+   default; `as` exposes the override. Lean: default `<h3>`.
+2. **Should `Title` get a `variant="prominent"`** for cards that want the
+   muted-label replaced by a real heading style? ~10 production usages
+   currently reach for `<Text variant="heading3">` here. Lean: not yet —
+   wait until there's clear demand after `Title` ships.
+3. **Where does `Pagination` belong?** ~6 usages place it in
+   `Secondary` (footer-style). Likely belongs there, but its variable
+   height is incompatible with the 56px invariant — needs calibration.
+4. **Lint / runtime guard for "no interactive children inside a linked
+   `Secondary`".** `<a>` containing `<button>` is invalid HTML; we should
+   warn at dev time.
+
+</ComponentSection>
