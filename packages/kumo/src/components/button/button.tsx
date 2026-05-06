@@ -32,7 +32,7 @@ export const KUMO_BUTTON_VARIANTS = {
       description: "Small button for secondary actions",
     },
     base: {
-      classes: "h-9 gap-1.5 rounded-lg px-3 text-base",
+      classes: "h-9 gap-1.5 rounded-lg px-5 text-base",
       description: "Default button size",
     },
     lg: {
