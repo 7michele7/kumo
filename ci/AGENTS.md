@@ -1,107 +1,83 @@
 # CI/CD Scripts
 
-TypeScript scripts + shell scripts for validation, reporting, versioning, and deployment. 6 GitHub Actions workflows in `.github/workflows/`.
+**Generated:** 2026-05-06 | **Commit:** 691301f94 | **Branch:** rozenmd/screenshot-worker-refactor-pt8
 
-**Parent:** See [root AGENTS.md](../AGENTS.md) for monorepo context.
+TypeScript entrypoints plus shell orchestration for PR validation, release reporting, docs deployment, npm publishing, and visual regression. Workflows live in `.github/workflows/`; this directory holds repo-local helpers invoked by workflows, package scripts, and lefthook.
 
 ## STRUCTURE
 
 ```
 ci/
-├── tsconfig.json              # ES2022, strict, Node types
-├── reporters/
-│   ├── types.ts               # Core types + artifact I/O (ci/reports/*.json)
-│   ├── index.ts               # Reporter registry + re-exports
-│   ├── npm-release.ts         # NPM beta install instructions (priority 10)
-│   ├── kumo-docs-preview.ts   # Docs preview URL (priority 30)
-│   └── visual-regression.ts   # Screenshot diff report
-├── scripts/
-│   ├── validate-kumo-changeset.ts   # Pre-push + CI changeset enforcement
-│   ├── ensure-changeset-config.ts   # Guard: .changeset/config.json exists
-│   ├── write-npm-report.ts          # Writes ci/reports/npm-release.json
-│   ├── write-kumo-docs-report.ts    # Writes ci/reports/kumo-docs-preview.json
-│   ├── post-pr-report.ts            # Aggregates artifacts → GitHub PR comment
-│   └── create-release-pr.ts         # Creates release PR via GitHub API
-├── utils/
-│   ├── git-operations.ts      # Git ref detection (CI + local), diff, changed files
-│   ├── github-api.ts          # Octokit wrapper (hardcoded: cloudflare/kumo)
-│   └── pr-reporter.ts         # Markdown assembly + comment posting
-├── visual-regression/
-│   └── run-visual-regression.ts  # Creates vr-screenshots-{pr}-{runId} branches
-└── versioning/
-    ├── version-beta.sh        # changeset version + append -beta.<sha> via jq
-    ├── publish-beta.sh        # Full pipeline: version → build → publish → verify (45s) → report
-    ├── release-production.sh  # Branch → version → build → publish → verify (30s) → push → PR
-    ├── deploy-kumo-docs-preview.sh   # Build → wrangler versions upload → preview URL → report
-    └── deploy-kumo-docs-staging.sh   # Build → wrangler deploy --env staging
+|-- reporters/             # ReportItem artifact bus and PR summary sections
+|-- scripts/               # tsx entrypoints called by workflows/package scripts
+|-- utils/                 # GitHub, git diff, PR comment helpers
+|-- versioning/            # Shell release/deploy orchestration; sensitive paths
+|-- visual-regression/     # Screenshot worker client, diffing, PR report comment
+`-- tsconfig.json          # Strict ES2022 Node config for ci/**/*.ts
 ```
 
 ## WHERE TO LOOK
 
-| Task                 | Location                                     | Notes                                                   |
-| -------------------- | -------------------------------------------- | ------------------------------------------------------- |
-| Changeset validation | `scripts/validate-kumo-changeset.ts`         | Used by lefthook pre-push AND CI                        |
-| PR comment system    | `reporters/` + `scripts/post-pr-report.ts`   | Artifact bus via `ci/reports/*.json`                    |
-| Beta release         | `versioning/publish-beta.sh`                 | Calls version-beta.sh internally                        |
-| Production release   | `versioning/release-production.sh`           | Creates release branch + PR                             |
-| Git operations       | `utils/git-operations.ts`                    | Dual-mode: GitHub Actions env vars / local `merge-base` |
-| Visual regression    | `visual-regression/run-visual-regression.ts` | Creates ephemeral branches for screenshot diffs         |
+| Task | Location | Notes |
+| ---- | -------- | ----- |
+| Kumo changeset gate | `scripts/validate-kumo-changeset.ts` | Called by `pullrequest.yml`, `lefthook.yml`, and `packages/kumo` script |
+| Reporter artifact contract | `reporters/types.ts` | `ci/reports/{id}.json`, `ReportItem`, `CIContext` |
+| Reporter registry | `reporters/index.ts` | Add every reporter here or it is invisible to registry users |
+| Consolidated PR report | `scripts/post-pr-report.ts`, `utils/pr-reporter.ts` | Reads artifacts, builds markdown, posts comment |
+| Git diff helpers | `utils/git-operations.ts` | CI refs plus local `origin/main` merge-base fallback |
+| GitHub API | `utils/github-api.ts` | Hardcoded `cloudflare/kumo` wrapper |
+| Beta package release | `versioning/publish-beta.sh` | Versions, builds, publishes beta, verifies npm, writes report |
+| Production release | `versioning/release-production.sh` | Human-only; branch, publish, tags, PR |
+| Docs preview deploy | `versioning/deploy-kumo-docs-preview.sh` | Older package-script path; workflows now deploy inline |
+| Visual regression | `visual-regression/run-visual-regression.ts` | Worker capture, pixelmatch diff, direct PR comment |
+
+## WORKFLOW MAP
+
+| Workflow | Trigger | ci/ usage |
+| -------- | ------- | --------- |
+| `pullrequest.yml` | PR, `opencode/**` push | Runs changeset validator; build artifact feeds lint/typecheck/test |
+| `preview.yml` | PR, `opencode/**`, `changeset-release/main` | Builds docs, deploys internal previews, runs VR from `main` checkout |
+| `preview-deploy.yml` | `workflow_run(Preview)` | Fork preview deploy; runs only main-branch config/scripts with secrets |
+| `release.yml` | push to `main` | Uses Changesets action directly, not `ci/versioning/*` |
+| `validate-pr-description.yml` | PR description/label events | Uses `tools/deployments/validate-pr-description.ts`, outside `ci/` |
+| `semgrep.yml` | PR, main/master, schedule, manual | No `ci/` helpers |
+| `bonk*.yml`, `reviewer.yml` | comments/reviews | AI automation, no `ci/` helpers |
 
 ## CONVENTIONS
 
-### Artifact Bus Pattern
-
-Jobs communicate via filesystem: each writes JSON to `ci/reports/{id}.json`, final job reads all.
-
-```
-publish-beta.sh → write-npm-report.ts → ci/reports/npm-release.json ──┐
-                                                                       ├→ post-pr-report.ts → PR comment
-deploy-docs-preview.sh → write-kumo-docs-report.ts → ci/reports/kumo-docs-preview.json ─┘
-```
-
-- Priority determines display order (lower = higher in comment): npm=10, docs=30
-- Reporter returns `null` to skip (e.g., no package version = no npm section)
-- `readReportArtifacts()` handles partial failures via `failures` array
-
-### Shell ↔ TypeScript Boundary
-
-- Shell scripts: orchestration (npm auth, git config, sequential builds, wrangler)
-- TypeScript: structured operations (report generation, PR creation, GitHub API)
-- Data channel: environment variables (`PACKAGE_VERSION`, `KUMO_DOCS_PREVIEW_URL`, `GITHUB_*`)
-
-### Dual-Mode Git Operations
-
-`getGitRefs()` adapts automatically:
-
-- **CI**: Uses `GITHUB_BASE_REF` / `GITHUB_HEAD_REF`
-- **Local**: Computes `git merge-base origin/main HEAD`
-- Uses `execFileSync` (array args) to prevent shell injection
-
-## GITHUB WORKFLOWS
-
-| Workflow             | Trigger                          | Purpose                                          |
-| -------------------- | -------------------------------- | ------------------------------------------------ |
-| `release.yml`        | push:main                        | changesets/action (Version PR or publish)        |
-| `pullrequest.yml`    | pull_request, push:opencode/\*\* | Build, lint, typecheck, test                     |
-| `preview.yml`        | pull_request, push:opencode/\*\* | pkg-pr-new, docs build/deploy, visual regression |
-| `preview-deploy.yml` | workflow_run(Preview)            | Fork PR docs deploy (security boundary)          |
-| `bonk.yml`           | issue_comment, pr_review_comment | AI agent (`@ask-bonk`) via CF AI Gateway         |
-| `reviewer.yml`       | pr_review_comment                | AI code review (`/review` command)               |
+- TS scripts are `tsx` entrypoints: parse env/CLI, call `reporters/` or `utils/`, exit non-zero on real failure.
+- Shell scripts orchestrate side effects: npm auth, git config, builds, `wrangler`, npm publish.
+- Reporter data crosses job boundaries as JSON files under `ci/reports/`; env crosses shell to TS via exported variables.
+- Prefer `buildContextFromEnv()` for reporter env; if reading env directly, keep it at an entrypoint boundary.
+- Prefer `execFileSync`/argument arrays for git/process calls. Do not interpolate refs into shell strings.
+- Keep fork PR secret boundary intact: run trusted code from `main`, pass untrusted PR state as data (`PR_HEAD_SHA`, deployed preview URL).
 
 ## ANTI-PATTERNS
 
-| Pattern                                  | Why                    | Instead                                |
-| ---------------------------------------- | ---------------------- | -------------------------------------- |
-| Reading `process.env.*` directly         | Bypasses typed context | Use `buildContextFromEnv()`            |
-| Adding reporter without registry         | Won't be collected     | Add to `reporters/index.ts` array      |
-| Running `release-production.sh` as agent | Sensitive operation    | Human-only; use `DRY_RUN=true` to test |
+| Pattern | Why | Instead |
+| ------- | --- | ------- |
+| Running `release-production.sh` as an agent | Publishes, pushes tags/branches, opens PR | Human only; use `DRY_RUN=true` for inspection |
+| Adding reporter without `reporters/index.ts` | Registry consumers miss it | Register and export it |
+| Falling back to old changesets | Lets unrelated changeset satisfy validation | Only newly added `.changeset/*.md` count |
+| Running fork code with secrets | Secret exfiltration risk | Checkout `main`, use artifacts/data from fork |
+| Treating `ci/versioning/*` as current workflow path | Most are package/manual scripts | Check workflow call sites first |
+| Silent missing-token no-op in required paths | False green CI | Fail loudly unless local preview behavior is intentional |
+
+## COMMANDS
+
+```bash
+pnpm tsx ci/scripts/validate-kumo-changeset.ts
+pnpm tsx ci/scripts/post-pr-report.ts
+DRY_RUN=true pnpm release:production
+pnpm publish:beta
+pnpm deploy:kumo-docs-preview
+pnpm tsx ci/visual-regression/run-visual-regression.ts --full
+```
 
 ## NOTES
 
-- **Verify-after-publish**: Both beta (45s) and production (30s) scripts sleep then check npm registry. No retry logic.
-- **`DRY_RUN=true`**: Production release script gates all destructive operations; logs what would happen
-- **Hardcoded repo**: `github-api.ts` uses `owner: "cloudflare", repo: "kumo"`
-- **Required secrets**: `NPM_TOKEN`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `GITHUB_TOKEN`, `FIGMA_TOKEN` (optional)
-- **Visual regression**: Creates ephemeral `vr-screenshots-{pr}-{runId}` branches for diff images
-- **Fork PR security**: `preview-deploy.yml` handles fork PRs via `workflow_run` (no secrets in fork context)
-- **Composite action**: `.github/actions/install-dependencies/action.yml` installs pnpm 10.22.0, Node 24, with optional filter
+- Repo currently has 10 workflow YAMLs; only some invoke `ci/` helpers.
+- `ci/reports/` is runtime output, not a tracked directory.
+- `reporters/visual-regression.ts` is registered but the active VR workflow posts directly from `run-visual-regression.ts`.
+- npm verification is fixed sleep only: beta 45s, production 30s, no retry loop.
+- Screenshot storage now goes through the worker API; do not document old `vr-screenshots-*` branch behavior.
