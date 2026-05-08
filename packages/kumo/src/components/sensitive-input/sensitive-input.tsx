@@ -1,4 +1,4 @@
-import { Copy, Eye, EyeSlash } from "@phosphor-icons/react";
+import { CopyIcon, EyeIcon, EyeSlashIcon } from "@phosphor-icons/react";
 import { Toast } from "@base-ui/react/toast";
 import { Tooltip as TooltipBase } from "@base-ui/react/tooltip";
 import {
@@ -354,7 +354,7 @@ function SensitiveInputInner({
             <InvertedTooltip content={labels.copyTooltip}>
               <InputGroup.Button
                 ref={copyButtonRef}
-                icon={Copy}
+                icon={CopyIcon}
                 aria-label={labels.copyAction}
                 onClick={copyToClipboard}
                 onBlur={() => toastManager.close("sensitive-input-copied")}
@@ -364,7 +364,7 @@ function SensitiveInputInner({
           {!disabled && (
             <InvertedTooltip content={revealed ? labels.hideTooltip : labels.revealTooltip}>
               <InputGroup.Button
-                icon={revealed ? EyeSlash : Eye}
+                icon={revealed ? EyeSlashIcon : EyeIcon}
                 aria-label={revealed ? labels.hide : labels.reveal}
                 onClick={toggleVisibility}
               />
