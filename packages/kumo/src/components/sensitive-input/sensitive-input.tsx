@@ -314,6 +314,7 @@ function SensitiveInputInner({
                 icon={Copy}
                 aria-label="Copy to clipboard"
                 onClick={copyToClipboard}
+                onBlur={() => toastManager.close("sensitive-input-copied")}
               />
             </InvertedTooltip>
           )}
