@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { createContext, useContext, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   Sidebar,
   Tabs,
@@ -6,6 +6,7 @@ import {
   Button,
   Input,
   CloudflareLogo,
+  DropdownMenu,
 } from "@cloudflare/kumo";
 import {
   HouseIcon,
@@ -92,7 +93,15 @@ function GlobalActions() {
   );
 }
 
-/** Segmented tabs for page-level navigation. Actions on the right. Scrolls on mobile with overflow menu. */
+type PageTabAction = {
+  label: string;
+  icon?: ReactNode;
+  trailingIcon?: ReactNode;
+  variant?: "primary" | "secondary";
+  onClick?: () => void;
+};
+
+/** Segmented tabs for page-level navigation. Tabs scroll horizontally; actions collapse to an ellipsis menu on small screens. */
 function PageTabs({
   tabs,
   selected,
@@ -100,28 +109,61 @@ function PageTabs({
 }: {
   tabs: string[];
   selected?: string;
-  actions?: ReactNode;
+  actions?: PageTabAction[];
 }) {
+  const portalContainer = useContext(PortalContainerContext);
   return (
     <div className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-kumo-line bg-kumo-base px-5">
-      <div className="flex min-w-0 items-center gap-2">
-        <div className="min-w-0 overflow-x-auto scrollbar-hide">
-          <Tabs
-            variant="segmented"
-            size="sm"
-            tabs={tabs.map((t) => ({
-              value: t.toLowerCase().replace(/\s/g, "-"),
-              label: t,
-            }))}
-            selectedValue={selected ?? tabs[0]?.toLowerCase().replace(/\s/g, "-")}
-          />
-        </div>
-        {/* Overflow menu — visible when tabs can't all fit */}
-        <button className="flex size-8 shrink-0 items-center justify-center rounded-md text-kumo-subtle hover:bg-kumo-tint hover:text-kumo-default lg:hidden">
-          <DotsThreeIcon size={16} weight="bold" />
-        </button>
+      <div className="min-w-0 flex-1">
+        <Tabs
+          variant="segmented"
+          tabs={tabs.map((t) => ({
+            value: t.toLowerCase().replace(/\s/g, "-"),
+            label: t,
+          }))}
+          selectedValue={selected ?? tabs[0]?.toLowerCase().replace(/\s/g, "-")}
+        />
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      {actions && actions.length > 0 && (
+        <div className="shrink-0">
+          {/* Inline buttons on lg+ */}
+          <div className="hidden items-center gap-2 lg:flex">
+            {actions.map((a, i) => (
+              <Button
+                key={i}
+                variant={a.variant ?? "secondary"}
+                onClick={a.onClick}
+              >
+                {a.icon}
+                {a.label}
+                {a.trailingIcon}
+              </Button>
+            ))}
+          </div>
+          {/* Ellipsis menu on small screens */}
+          <div className="lg:hidden">
+            <DropdownMenu>
+              <DropdownMenu.Trigger>
+                <Button
+                  shape="square"
+                  aria-label="Actions"
+                  variant="outline"
+                  icon={<DotsThreeIcon size={18} weight="bold" />}
+                >
+
+                </Button>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content align="end">
+                {actions.map((a, i) => (
+                  <DropdownMenu.Item key={i} onClick={a.onClick}>
+                    {a.label}
+                  </DropdownMenu.Item>
+                ))}
+              </DropdownMenu.Content>
+            </DropdownMenu>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -196,49 +238,53 @@ const VARIANT_DESC: Record<LayoutVariant, string> = {
   "worker-detail": "Breadcrumb + sticky tabs + actions. Detail pages.",
 };
 
+const PortalContainerContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
+
 export function PageLayoutDemo() {
   const [variant, setVariant] = useState<LayoutVariant>("scrolling");
+  const rootRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="flex h-screen flex-col">
-      {/* Demo-only: variant switcher */}
-      <div className="flex shrink-0 items-center justify-between border-b border-kumo-line bg-kumo-base px-4 py-2">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-kumo-default">Layout:</span>
-          <Tabs
-            variant="segmented"
-            size="sm"
-            tabs={VARIANTS.map((v) => ({ value: v.value, label: v.label }))}
-            value={variant}
-            onValueChange={(v) => setVariant(v as LayoutVariant)}
-          />
-        </div>
-        <span className="hidden text-xs text-kumo-subtle lg:block">
-          {VARIANT_DESC[variant]}
-        </span>
-      </div>
-
-      {/* Dashboard shell */}
-      <Sidebar.Provider
-        defaultOpen
-        variant="sidebar"
-        side="left"
-        collapsible="icon"
-        className="!min-h-0 flex-1"
-      >
-        <DashSidebar activeVariant={variant} />
-        <main className="relative flex min-w-0 flex-1 flex-col bg-kumo-recessed">
-          <div className="relative flex min-h-0 flex-1 flex-col">
-            {variant === "scrolling" && <ScrollingLayout />}
-            {variant === "viewport-locked" && <ViewportLockedLayout />}
-            {variant === "two-column" && <TwoColumnLayout />}
-            {variant === "sticky-filter" && <StickyFilterLayout />}
-            {variant === "full-takeover" && <FullTakeoverLayout />}
-            {variant === "worker-detail" && <WorkerDetailLayout />}
+    <PortalContainerContext.Provider value={rootRef}>
+      <div ref={rootRef} className="isolate flex h-screen flex-col">
+        {/* Demo-only: variant switcher */}
+        <div className="flex shrink-0 items-center justify-between border-b border-kumo-line bg-kumo-base px-4 py-2">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-kumo-default">Layout:</span>
+            <Tabs
+              variant="segmented"
+              tabs={VARIANTS.map((v) => ({ value: v.value, label: v.label }))}
+              value={variant}
+              onValueChange={(v) => setVariant(v as LayoutVariant)}
+            />
           </div>
-        </main>
-      </Sidebar.Provider>
-    </div>
+          <span className="hidden text-xs text-kumo-subtle lg:block">
+            {VARIANT_DESC[variant]}
+          </span>
+        </div>
+
+        {/* Dashboard shell */}
+        <Sidebar.Provider
+          defaultOpen
+          variant="sidebar"
+          side="left"
+          collapsible="icon"
+          className="!min-h-0 flex-1"
+        >
+          <DashSidebar activeVariant={variant} />
+          <main className="relative flex min-w-0 flex-1 flex-col bg-kumo-recessed">
+            <div className="relative flex min-h-0 flex-1 flex-col">
+              {variant === "scrolling" && <ScrollingLayout />}
+              {variant === "viewport-locked" && <ViewportLockedLayout />}
+              {variant === "two-column" && <TwoColumnLayout />}
+              {variant === "sticky-filter" && <StickyFilterLayout />}
+              {variant === "full-takeover" && <FullTakeoverLayout />}
+              {variant === "worker-detail" && <WorkerDetailLayout />}
+            </div>
+          </main>
+        </Sidebar.Provider>
+      </div>
+    </PortalContainerContext.Provider>
   );
 }
 
@@ -329,7 +375,7 @@ function ScrollingLayout() {
       />
       <PageTabs
         tabs={["Records", "Analytics", "Settings"]}
-        actions={<Button variant="secondary" size="sm">Documentation</Button>}
+        actions={[{ label: "Documentation", variant: "secondary" }]}
       />
       <PageContent>
         <div className="flex flex-col gap-3">
@@ -403,14 +449,15 @@ function TwoColumnLayout() {
         breadcrumbs={[
           { icon: <TerminalIcon size={16} />, label: "Workers & Pages", active: true },
         ]}
-        actions={
-          <>
-            <Button variant="secondary" size="sm">Documentation</Button>
-            <Button variant="primary" size="sm">Create application</Button>
-          </>
-        }
+
       />
-      <PageTabs tabs={["Namespaces", "Detections"]} />
+      <PageTabs
+        tabs={["Namespaces", "Detections"]}
+        actions={[
+          { label: "Documentation", variant: "secondary" },
+          { label: "Create application", variant: "primary" },
+        ]}
+      />
       <PageContent>
         <div className="flex gap-4">
           <div className="flex min-w-0 flex-1 flex-col gap-3">
@@ -519,19 +566,19 @@ function WorkerDetailLayout() {
       />
       <PageTabs
         tabs={["Overview", "Metrics", "Deployments", "Previews", "Bindings", "Observability", "Domains", "Settings"]}
-        actions={
-          <>
-            <Button variant="secondary" size="sm">
-              <CodeIcon size={14} />
-              Edit code
-            </Button>
-            <Button variant="primary" size="sm">
-              <GlobeSimpleIcon size={14} />
-              Visit
-              <ArrowSquareOutIcon size={12} />
-            </Button>
-          </>
-        }
+        actions={[
+          {
+            label: "Edit code",
+            variant: "secondary",
+            icon: <CodeIcon size={14} />,
+          },
+          {
+            label: "Visit",
+            variant: "primary",
+            icon: <GlobeSimpleIcon size={14} />,
+            trailingIcon: <ArrowSquareOutIcon size={12} />,
+          },
+        ]}
       />
       <PageContent>
         <div className="flex flex-col gap-3">

@@ -9,7 +9,8 @@ import { PageLayoutDemo } from "~/components/demos/PageLayoutDemo";
 ---
 
 <BaseLayout title="Page Layouts">
-  <div data-mode="dark">
-    <PageLayoutDemo client:load />
-  </div>
+  <script is:inline>
+    document.documentElement.setAttribute("data-mode", "dark");
+  </script>
+  <PageLayoutDemo client:load />
 </BaseLayout>
