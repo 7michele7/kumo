@@ -1,0 +1,94 @@
+import { cn } from "../../utils/cn";
+import { useWizard } from "./wizard";
+
+export interface WizardSidebarProps {
+  /** Additional CSS classes merged via `cn()`. */
+  className?: string;
+}
+
+/**
+ * Right-side step indicator showing step labels with dot indicators.
+ * Reads step info from `WizardContext`. Hidden when the `wizard`
+ * container (Wizard.Grid) is narrower than `@5xl` (64rem).
+ *
+ * Steps with `hideFromSidebar: true` are excluded from the list.
+ * Completed steps are clickable (navigates back) unless `lockTabMenu` is true.
+ *
+ * @example
+ * ```tsx
+ * <Wizard step={step} onStepChange={setStep}>
+ *   <Wizard.Sidebar />
+ *   <Wizard.Steps>...</Wizard.Steps>
+ * </Wizard>
+ * ```
+ */
+export function WizardSidebar({ className }: WizardSidebarProps) {
+  const { items, step, onStepChange, lockTabMenu } = useWizard();
+
+  const visibleItems = items.filter((item) => !item.hideFromSidebar);
+
+  return (
+    <div
+      data-kumo-component="Wizard"
+      data-kumo-part="sidebar"
+      className={cn(
+        "absolute start-full top-[var(--wizard-content-top,180px)] hidden w-max translate-x-5 flex-col rtl:-translate-x-5 @5xl/wizard:flex",
+        className,
+      )}
+    >
+      {visibleItems.map((item) => {
+        // Find the original index in the full items array
+        const originalIndex = items.findIndex((i) => i.key === item.key);
+        const isActive = originalIndex === step;
+        const isCompleted = originalIndex < step;
+        const isClickable = isCompleted && !lockTabMenu;
+
+        const isFuture = !isActive && !isCompleted;
+
+        const dotClassName = cn(
+          "size-1.5 shrink-0 rounded-full",
+          isActive && "bg-kumo-contrast",
+          isCompleted && "border border-kumo-interact bg-kumo-interact",
+          isFuture && "border border-kumo-interact",
+        );
+
+        const label = (
+          <span className="whitespace-nowrap text-sm font-medium">
+            {item.label}
+          </span>
+        );
+
+        const sharedClassName = cn(
+          "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-kumo-subtle transition-colors duration-300",
+          isActive && "text-kumo-strong",
+        );
+
+        if (isClickable) {
+          return (
+            <button
+              key={item.key}
+              type="button"
+              className={cn(
+                sharedClassName,
+                "cursor-pointer hover:bg-kumo-fill-hover",
+              )}
+              onClick={() => onStepChange(originalIndex)}
+            >
+              <div className={dotClassName} />
+              {label}
+            </button>
+          );
+        }
+
+        return (
+          <div key={item.key} className={sharedClassName}>
+            <div className={dotClassName} />
+            {label}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+WizardSidebar.displayName = "Wizard.Sidebar";
