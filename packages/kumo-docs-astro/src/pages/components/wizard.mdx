@@ -9,6 +9,7 @@ import ComponentExample from "~/components/docs/ComponentExample.astro";
 import ComponentSection from "~/components/docs/ComponentSection.astro";
 import CodeBlock from "~/components/docs/CodeBlock.astro";
 import PropsTable from "~/components/docs/PropsTable.astro";
+import Anatomy from "~/components/docs/Anatomy.astro";
 import { WizardFullDemo } from "~/components/demos/WizardDemo";
 
 {/* Hero Demo */}
@@ -48,14 +49,46 @@ import { WizardFullDemo } from "~/components/demos/WizardDemo";
 
 The Wizard is a compound component. Compose only the pieces you need:
 
-```
-Wizard.Fullscreen — portal overlay
-  └── Wizard.Grid (optional — decorative wireframe)
-        └── Wizard — step state, context, and navigation
-              └── Wizard.Steps — filters and indexes active steps
-                    └── Wizard.Step — individual step with card-stack animation
-                          └── Wizard.Page — card surface with title, description, body, and footer
-```
+<Anatomy
+  nodes={[
+    {
+      name: "Wizard.Fullscreen",
+      href: "#wizardfullscreen",
+      description: "Portal overlay",
+    },
+    {
+      name: "Wizard.Grid",
+      href: "#wizardgrid",
+      depth: 1,
+      optional: true,
+      description: "Decorative wireframe",
+    },
+    {
+      name: "Wizard",
+      href: "#wizard",
+      depth: 2,
+      description: "Step state, context, and navigation",
+    },
+    {
+      name: "Wizard.Steps",
+      href: "#wizardsteps",
+      depth: 3,
+      description: "Filters and indexes active steps",
+    },
+    {
+      name: "Wizard.Step",
+      href: "#wizardstep",
+      depth: 4,
+      description: "Individual step with card-stack animation",
+    },
+    {
+      name: "Wizard.Page",
+      href: "#wizardpage",
+      depth: 5,
+      description: "Card surface with title, description, body, and footer",
+    },
+  ]}
+/>
 
 </ComponentSection>
 
