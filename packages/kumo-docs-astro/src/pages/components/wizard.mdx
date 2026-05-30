@@ -54,7 +54,7 @@ Wizard.Fullscreen — portal overlay
         └── Wizard — step state, context, and navigation
               └── Wizard.Steps — filters and indexes active steps
                     └── Wizard.Step — individual step with card-stack animation
-                          └── Wizard.Page — card surface with title, body, and footer
+                          └── Wizard.Page — card surface with title, description, body, and footer
 ```
 
 </ComponentSection>
@@ -66,47 +66,43 @@ Wizard.Fullscreen — portal overlay
 ## Usage
 
 ```tsx
-import { useState } from "react";
-import { Wizard, Button } from "@cloudflare/kumo";
+import { Button, Wizard, useWizard, useWizardGrid } from "@cloudflare/kumo";
 
-export default function Example() {
-  const [step, setStep] = useState(0);
+function CreateWorker({ open, onClose }) {
+  const { gridProps, onActiveStepElementChange } = useWizardGrid();
 
   return (
-    <Wizard.Fullscreen open onClose={() => {}}>
-      <Wizard step={step} onStepChange={setStep}>
-        <Wizard.Steps>
-          <Wizard.Step stepKey="first" label="First">
-            <Wizard.Page
-              title="First step"
-              footer={
-                <>
-                  <div />
-                  <Button onClick={() => setStep(1)}>Next</Button>
-                </>
-              }
-            >
-              <p>Step content here.</p>
-            </Wizard.Page>
-          </Wizard.Step>
-          <Wizard.Step stepKey="second" label="Second">
-            <Wizard.Page
-              title="Second step"
-              footer={
-                <>
-                  <Button variant="secondary" onClick={() => setStep(0)}>
-                    Back
-                  </Button>
-                  <Button>Done</Button>
-                </>
-              }
-            >
-              <p>More content here.</p>
-            </Wizard.Page>
-          </Wizard.Step>
-        </Wizard.Steps>
-      </Wizard>
+    <Wizard.Fullscreen open={open} onClose={onClose}>
+      <Wizard.Grid title="Create a Worker" {...gridProps}>
+        <Wizard onActiveStepElementChange={onActiveStepElementChange}>
+          <Wizard.Steps>
+            <Wizard.Step stepKey="method" label="Select a method">
+              <Wizard.Page
+                title="Ship something new"
+                description="Choose how you want to start."
+                footer={<Footer />}
+              >
+                {/* ... */}
+              </Wizard.Page>
+            </Wizard.Step>
+            {/* ...more steps */}
+          </Wizard.Steps>
+        </Wizard>
+      </Wizard.Grid>
     </Wizard.Fullscreen>
+  );
+}
+
+function Footer() {
+  const { back, next, isFirstStep } = useWizard();
+
+  return (
+    <>
+      <Button variant="ghost" onClick={back} disabled={isFirstStep}>
+        Back
+      </Button>
+      <Button onClick={next}>Continue</Button>
+    </>
   );
 }
 ```
@@ -131,108 +127,134 @@ export default function Example() {
   lang="tsx"
 />
 
-<div class="mb-4 overflow-hidden rounded-lg border border-kumo-hairline">
+<div class="not-prose mt-4 overflow-x-auto">
   <table class="w-full text-sm">
-    <thead class="bg-kumo-elevated">
-      <tr>
-        <th class="px-4 py-2 text-left font-medium">Property</th>
-        <th class="px-4 py-2 text-left font-medium">Type</th>
-        <th class="px-4 py-2 text-left font-medium">Description</th>
+    <thead>
+      <tr class="border-b border-kumo-hairline">
+        <th class="px-4 py-3 text-left font-semibold">Property</th>
+        <th class="px-4 py-3 text-left font-semibold">Type</th>
+        <th class="px-4 py-3 text-left font-semibold">Description</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-kumo-hairline">
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">step</td>
-        <td class="px-4 py-2 font-mono text-xs">number</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Current active step index (0-based).
+    <tbody class="text-kumo-strong">
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">back</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">() =&gt; void</code>
         </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">stepKey</td>
-        <td class="px-4 py-2 font-mono text-xs">string | undefined</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Key of the current active step (`Wizard.Step`'s `stepKey`).
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">goToStep</td>
-        <td class="px-4 py-2 font-mono text-xs">(key: string) =&gt; void</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Navigate to a step by its `stepKey`. No-op if the key is not mounted.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">next</td>
-        <td class="px-4 py-2 font-mono text-xs">() =&gt; void</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Advance to the next mounted step. No-op on the last step.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">back</td>
-        <td class="px-4 py-2 font-mono text-xs">() =&gt; void</td>
-        <td class="px-4 py-2 text-kumo-subtle">
+        <td class="px-4 py-3 text-xs max-w-md">
           Go back to the previous step. No-op on the first step.
         </td>
       </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">onStepChange</td>
-        <td class="px-4 py-2 font-mono text-xs">(step: number) =&gt; void</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Navigate to a step by numeric index. Prefer `goToStep`, `next`, or
-          `back`.
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">complete</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">() =&gt; void</code>
+        </td>
+        <td class="px-4 py-3 text-xs max-w-md">
+          Fires the `onComplete` callback. Not gated by `isLastStep` — the
+          consumer decides when to call it.
         </td>
       </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">lockTabMenu</td>
-        <td class="px-4 py-2 font-mono text-xs">boolean</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Whether backward navigation is locked.
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">goToStep</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">(key: string) =&gt; void</code>
+        </td>
+        <td class="px-4 py-3 text-xs max-w-md">
+          Navigate to a step by its `stepKey`. No-op if the key is not mounted.
         </td>
       </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">totalSteps</td>
-        <td class="px-4 py-2 font-mono text-xs">number</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Total number of registered steps.
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">isChangingStep</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">boolean</code>
         </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">items</td>
-        <td class="px-4 py-2 font-mono text-xs">WizardStepItem[]</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Array of registered step metadata (key, label, hideFromSidebar).
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">isChangingStep</td>
-        <td class="px-4 py-2 font-mono text-xs">boolean</td>
-        <td class="px-4 py-2 text-kumo-subtle">
+        <td class="px-4 py-3 text-xs max-w-md">
           Whether an `onBeforeStepChange` guard is pending. Use to show a
           loading state on navigation buttons.
         </td>
       </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">isLastStep</td>
-        <td class="px-4 py-2 font-mono text-xs">boolean</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Whether the wizard is on its last registered step.
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">isFirstStep</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">boolean</code>
         </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">isFirstStep</td>
-        <td class="px-4 py-2 font-mono text-xs">boolean</td>
-        <td class="px-4 py-2 text-kumo-subtle">
+        <td class="px-4 py-3 text-xs max-w-md">
           Whether the wizard is on its first step.
         </td>
       </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">complete</td>
-        <td class="px-4 py-2 font-mono text-xs">() =&gt; void</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Fires the `onComplete` callback. Not gated by `isLastStep` — the
-          consumer decides when to call it.
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">isLastStep</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">boolean</code>
+        </td>
+        <td class="px-4 py-3 text-xs max-w-md">
+          Whether the wizard is on its last registered step.
+        </td>
+      </tr>
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">items</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">WizardStepItem[]</code>
+        </td>
+        <td class="px-4 py-3 text-xs max-w-md">
+          Array of registered step metadata (key, label, hideFromSidebar).
+        </td>
+      </tr>
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">lockTabMenu</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">boolean</code>
+        </td>
+        <td class="px-4 py-3 text-xs max-w-md">
+          Whether backward navigation is locked.
+        </td>
+      </tr>
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">next</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">() =&gt; void</code>
+        </td>
+        <td class="px-4 py-3 text-xs max-w-md">
+          Advance to the next mounted step. No-op on the last step.
+        </td>
+      </tr>
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">onStepChange</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">(step: number) =&gt; void</code>
+        </td>
+        <td class="px-4 py-3 text-xs max-w-md">
+          Navigate to a step by numeric index. Prefer `goToStep`, `next`, or
+          `back`.
+        </td>
+      </tr>
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">step</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">number</code>
+        </td>
+        <td class="px-4 py-3 text-xs max-w-md">
+          Current active step index (0-based).
+        </td>
+      </tr>
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">stepKey</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">string | undefined</code>
+        </td>
+        <td class="px-4 py-3 text-xs max-w-md">
+          Key of the current active step (`Wizard.Step`'s `stepKey`).
+        </td>
+      </tr>
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">totalSteps</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">number</code>
+        </td>
+        <td class="px-4 py-3 text-xs max-w-md">
+          Total number of registered steps.
         </td>
       </tr>
     </tbody>
@@ -258,27 +280,29 @@ const { gridProps, onActiveStepElementChange } = useWizardGrid();
 </Wizard.Grid>;
 ```
 
-<div class="mb-4 overflow-hidden rounded-lg border border-kumo-hairline">
+<div class="not-prose mt-4 overflow-x-auto">
   <table class="w-full text-sm">
-    <thead class="bg-kumo-elevated">
-      <tr>
-        <th class="px-4 py-2 text-left font-medium">Return</th>
-        <th class="px-4 py-2 text-left font-medium">Type</th>
-        <th class="px-4 py-2 text-left font-medium">Description</th>
+    <thead>
+      <tr class="border-b border-kumo-hairline">
+        <th class="px-4 py-3 text-left font-semibold">Return</th>
+        <th class="px-4 py-3 text-left font-semibold">Type</th>
+        <th class="px-4 py-3 text-left font-semibold">Description</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-kumo-hairline">
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">gridProps</td>
-        <td class="px-4 py-2 font-mono text-xs">{`{ activeCardHeight: number; isTransitioning: boolean }`}</td>
-        <td class="px-4 py-2 text-kumo-subtle">Spread onto `Wizard.Grid`.</td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">onActiveStepElementChange</td>
-        <td class="px-4 py-2 font-mono text-xs">
-          (el: HTMLDivElement | null) =&gt; void
+    <tbody class="text-kumo-strong">
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">gridProps</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">{`{ activeCardHeight: number; isTransitioning: boolean }`}</code>
         </td>
-        <td class="px-4 py-2 text-kumo-subtle">
+        <td class="px-4 py-3 text-xs max-w-md">Spread onto `Wizard.Grid`.</td>
+      </tr>
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">onActiveStepElementChange</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">{`(el: HTMLDivElement | null) => void`}</code>
+        </td>
+        <td class="px-4 py-3 text-xs max-w-md">
           Callback for step element tracking.
         </td>
       </tr>
@@ -300,82 +324,7 @@ const { gridProps, onActiveStepElementChange } = useWizardGrid();
   Root context provider and animation engine. Must be rendered inside a
   `Wizard.Fullscreen`.
 </p>
-<div class="mb-4 overflow-hidden rounded-lg border border-kumo-hairline">
-  <table class="w-full text-sm">
-    <thead class="bg-kumo-elevated">
-      <tr>
-        <th class="px-4 py-2 text-left font-medium">Prop</th>
-        <th class="px-4 py-2 text-left font-medium">Type</th>
-        <th class="px-4 py-2 text-left font-medium">Default</th>
-        <th class="px-4 py-2 text-left font-medium">Description</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-kumo-hairline">
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">step</td>
-        <td class="px-4 py-2 font-mono text-xs">number | string</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Current active step (0-based index or `stepKey` string). Controlled
-          mode.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">defaultStep</td>
-        <td class="px-4 py-2 font-mono text-xs">number | string</td>
-        <td class="px-4 py-2 font-mono text-xs">0</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Initial step for uncontrolled mode. Accepts index or `stepKey`.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">onStepChange</td>
-        <td class="px-4 py-2 font-mono text-xs">
-          (index: number, key: string) =&gt; void
-        </td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Callback when step changes. Receives both the numeric index and the
-          step key.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">lockTabMenu</td>
-        <td class="px-4 py-2 font-mono text-xs">boolean</td>
-        <td class="px-4 py-2 font-mono text-xs">false</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Prevents clicking previous steps or sidebar items to navigate back.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">sidebar</td>
-        <td class="px-4 py-2 font-mono text-xs">boolean</td>
-        <td class="px-4 py-2 font-mono text-xs">true</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Renders the step-indicator sidebar. Set `false` to hide it.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">className</td>
-        <td class="px-4 py-2 font-mono text-xs">string</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">Additional CSS classes.</td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">labels</td>
-        <td class="px-4 py-2 font-mono text-xs">WizardLabels</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Labels for i18n of step aria-labels. `goBackTo`: function receiving
-          the step label and returning the go-back string (default: `` (l) =>
-          `Go back to ${"{l}"}` ``). `previousStep`: fallback when a step has no
-          `label` prop (default: `"previous step"`). All fields optional —
-          English defaults are used when omitted.
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+<PropsTable component="WizardRoot" />
 
 ### Wizard.Fullscreen
 
@@ -383,65 +332,7 @@ const { gridProps, onActiveStepElementChange } = useWizardGrid();
   Fullscreen modal container with a floating close button, Escape-to-close,
   scroll lock, and `role="dialog"`. Content fills the entire viewport.
 </p>
-<div class="mb-4 overflow-hidden rounded-lg border border-kumo-hairline">
-  <table class="w-full text-sm">
-    <thead class="bg-kumo-elevated">
-      <tr>
-        <th class="px-4 py-2 text-left font-medium">Prop</th>
-        <th class="px-4 py-2 text-left font-medium">Type</th>
-        <th class="px-4 py-2 text-left font-medium">Default</th>
-        <th class="px-4 py-2 text-left font-medium">Description</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-kumo-hairline">
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">open</td>
-        <td class="px-4 py-2 font-mono text-xs">boolean</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Controls visibility. Returns `null` when `false`.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">onClose</td>
-        <td class="px-4 py-2 font-mono text-xs">() =&gt; void</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Called on Escape or close button click.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">showCloseButton</td>
-        <td class="px-4 py-2 font-mono text-xs">boolean</td>
-        <td class="px-4 py-2 font-mono text-xs">true</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Whether to show the floating close button.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">container</td>
-        <td class="px-4 py-2 font-mono text-xs">PortalContainer</td>
-        <td class="px-4 py-2 font-mono text-xs">document.body</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Portal target element. Use to render the wizard inside a Shadow DOM or
-          custom container. Overrides `KumoPortalProvider` context. The overlay
-          relies on portal DOM order for stacking (no z-index) — pass
-          `className` if a custom z-index is needed.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">labels</td>
-        <td class="px-4 py-2 font-mono text-xs">WizardFullscreenLabels</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Labels for i18n of aria-labels. `close`: aria-label for the close
-          button (default: `"Close"`). All fields optional — English defaults
-          are used when omitted.
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+<PropsTable component="WizardRoot.Fullscreen" />
 
 ### Wizard.Grid
 
@@ -450,61 +341,7 @@ const { gridProps, onActiveStepElementChange } = useWizardGrid();
   optional left-side title. The bottom border and crosses animate with the
   active card's measured height.
 </p>
-<div class="mb-4 overflow-hidden rounded-lg border border-kumo-hairline">
-  <table class="w-full text-sm">
-    <thead class="bg-kumo-elevated">
-      <tr>
-        <th class="px-4 py-2 text-left font-medium">Prop</th>
-        <th class="px-4 py-2 text-left font-medium">Type</th>
-        <th class="px-4 py-2 text-left font-medium">Default</th>
-        <th class="px-4 py-2 text-left font-medium">Description</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-kumo-hairline">
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">width</td>
-        <td class="px-4 py-2 font-mono text-xs">"narrow" | "wide"</td>
-        <td class="px-4 py-2 font-mono text-xs">"narrow"</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Max-width for both the wireframe decoration and the card content.
-          `"narrow"` = 38rem, `"wide"` = 48rem.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">title</td>
-        <td class="px-4 py-2 font-mono text-xs">string</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Left-side title, visible at `@5xl/wizard` (64rem).
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">activeCardHeight</td>
-        <td class="px-4 py-2 font-mono text-xs">number</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Measured card height for border animation. Use `useWizardGrid()`.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">isTransitioning</td>
-        <td class="px-4 py-2 font-mono text-xs">boolean</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Whether a step transition is in progress. Use `useWizardGrid()`.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">topOffset</td>
-        <td class="px-4 py-2 font-mono text-xs">number</td>
-        <td class="px-4 py-2 font-mono text-xs">147</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Distance from viewport top to the grid.
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+<PropsTable component="WizardRoot.Grid" />
 
 ### Wizard.Steps
 
@@ -512,28 +349,7 @@ const { gridProps, onActiveStepElementChange } = useWizardGrid();
   Container for wizard steps. Injects the `index` prop into each child
   `Wizard.Step`.
 </p>
-<div class="mb-4 overflow-hidden rounded-lg border border-kumo-hairline">
-  <table class="w-full text-sm">
-    <thead class="bg-kumo-elevated">
-      <tr>
-        <th class="px-4 py-2 text-left font-medium">Prop</th>
-        <th class="px-4 py-2 text-left font-medium">Type</th>
-        <th class="px-4 py-2 text-left font-medium">Default</th>
-        <th class="px-4 py-2 text-left font-medium">Description</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-kumo-hairline">
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">className</td>
-        <td class="px-4 py-2 font-mono text-xs">string</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Additional CSS classes for the step container.
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+<PropsTable component="WizardRoot.Steps" />
 
 ### Wizard.Step
 
@@ -541,54 +357,7 @@ const { gridProps, onActiveStepElementChange } = useWizardGrid();
   Individual step definition. Registers metadata with the Wizard context and
   wraps children in a card-stack animation.
 </p>
-<div class="mb-4 overflow-hidden rounded-lg border border-kumo-hairline">
-  <table class="w-full text-sm">
-    <thead class="bg-kumo-elevated">
-      <tr>
-        <th class="px-4 py-2 text-left font-medium">Prop</th>
-        <th class="px-4 py-2 text-left font-medium">Type</th>
-        <th class="px-4 py-2 text-left font-medium">Default</th>
-        <th class="px-4 py-2 text-left font-medium">Description</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-kumo-hairline">
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">stepKey</td>
-        <td class="px-4 py-2 font-mono text-xs">string</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Unique identifier for this step. Required.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">label</td>
-        <td class="px-4 py-2 font-mono text-xs">string</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Label shown in the sidebar navigation.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">hideFromSidebar</td>
-        <td class="px-4 py-2 font-mono text-xs">boolean</td>
-        <td class="px-4 py-2 font-mono text-xs">false</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Hides this step from the sidebar list.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">when</td>
-        <td class="px-4 py-2 font-mono text-xs">boolean</td>
-        <td class="px-4 py-2 font-mono text-xs">true</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Whether this step is active in the current flow. When `false`, the
-          step is excluded from rendering, indexing, sidebar, and navigation.
-          Prefer over `{"{cond && <Step>}"}` for declarative branching.
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+<PropsTable component="WizardRoot.Step" />
 
 ### Wizard.Page
 
@@ -596,61 +365,6 @@ const { gridProps, onActiveStepElementChange } = useWizardGrid();
   Card layout inside a wizard step. Wraps content in a `LayerCard` with optional
   title, description, scrollable body, and footer.
 </p>
-<div class="mb-4 overflow-hidden rounded-lg border border-kumo-hairline">
-  <table class="w-full text-sm">
-    <thead class="bg-kumo-elevated">
-      <tr>
-        <th class="px-4 py-2 text-left font-medium">Prop</th>
-        <th class="px-4 py-2 text-left font-medium">Type</th>
-        <th class="px-4 py-2 text-left font-medium">Default</th>
-        <th class="px-4 py-2 text-left font-medium">Description</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-kumo-hairline">
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">title</td>
-        <td class="px-4 py-2 font-mono text-xs">string</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">Card heading text.</td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">description</td>
-        <td class="px-4 py-2 font-mono text-xs">string | ReactNode</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Description shown below the title.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">footer</td>
-        <td class="px-4 py-2 font-mono text-xs">ReactNode</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Footer content (e.g., navigation buttons). Rendered with a top border.
-        </td>
-      </tr>
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">maxHeight</td>
-        <td class="px-4 py-2 font-mono text-xs">string</td>
-        <td class="px-4 py-2 font-mono text-xs">~100vh − 400px</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Max height of the card. Default caps near `100vh − 400px` on normal
-          viewports, with a 320px floor and adaptive ceiling on short screens.
-          Override with any CSS value (e.g. `"600px"`, `"80dvh"`).
-        </td>
-      </tr>
-
-      <tr>
-        <td class="px-4 py-2 font-mono text-xs">className</td>
-        <td class="px-4 py-2 font-mono text-xs">string</td>
-        <td class="px-4 py-2 font-mono text-xs">—</td>
-        <td class="px-4 py-2 text-kumo-subtle">
-          Additional CSS classes for the card.
-        </td>
-      </tr>
-    </tbody>
-
-  </table>
-</div>
+<PropsTable component="WizardRoot.Page" />
 
 </ComponentSection>

@@ -52,20 +52,16 @@ const DEFAULT_FULLSCREEN_LABELS: Required<WizardFullscreenLabels> = {
 };
 
 export interface WizardFullscreenProps {
-  /** Controls visibility. Returns `null` when `false`. */
-  open?: boolean;
-  /** Callback when the container requests close (Escape key or close button). */
-  onClose?: () => void;
-  /** Override content wrapper classes. */
-  className?: string;
-  /** Whether to show the close button. @default true */
-  showCloseButton?: boolean;
   /**
    * Accessible name for the dialog container (screen-reader only).
    * Sets `aria-label` on the `role="dialog"` element.
    * @default "Fullscreen container"
    */
   "aria-label"?: string;
+  /** Wizard content. */
+  children: ReactNode;
+  /** Override content wrapper classes. */
+  className?: string;
   /**
    * Container element for the portal. Use this to render the wizard inside
    * a Shadow DOM or custom container. Overrides `KumoPortalProvider` context.
@@ -74,8 +70,12 @@ export interface WizardFullscreenProps {
   container?: PortalContainer;
   // Labels for internationalization of aria-labels. All labels have English defaults.
   labels?: WizardFullscreenLabels;
-  /** Wizard content. */
-  children: ReactNode;
+  /** Callback when the container requests close (Escape key or close button). */
+  onClose?: () => void;
+  /** Controls visibility. Returns `null` when `false`. */
+  open?: boolean;
+  /** Whether to show the close button. @default true */
+  showCloseButton?: boolean;
 }
 
 let scrollLockCount = 0;
@@ -114,14 +114,14 @@ export const WizardFullscreen = forwardRef<
   WizardFullscreenProps
 >(function WizardFullscreen(
   {
-    open,
-    onClose,
-    className,
-    showCloseButton = true,
     "aria-label": ariaLabel = "Fullscreen container",
+    children,
+    className,
     container: containerProp,
     labels: labelsProp,
-    children,
+    onClose,
+    open,
+    showCloseButton = true,
   },
   ref,
 ) {
@@ -203,16 +203,16 @@ export const WizardFullscreen = forwardRef<
 
   const rootElement = (
     <div
+      aria-label={ariaLabel}
+      aria-modal="true"
+      className={rootClassName}
       ref={(node) => {
         // Merge forwarded ref and portal container ref
         portalContainerRef.current = node;
         if (typeof ref === "function") ref(node);
         else if (ref) ref.current = node;
       }}
-      className={rootClassName}
       role="dialog"
-      aria-modal="true"
-      aria-label={ariaLabel}
       tabIndex={-1}
     >
       {renderShellContents()}

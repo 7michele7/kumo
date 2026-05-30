@@ -74,6 +74,8 @@ export function WizardFullDemo() {
                     <SetupBody
                       workerName={demo.workerName}
                       onWorkerNameChange={demo.setWorkerName}
+                      nameStatus={demo.nameStatus}
+                      nameError={demo.nameError}
                     />
                   </Wizard.Page>
                   {demo.isDeploying && (
@@ -92,7 +94,6 @@ export function WizardFullDemo() {
                     description="A simple Worker that returns 'Hello World!'. Perfect for getting started."
                     footer={
                       <DeployStepFooter
-                        nameError={demo.nameError}
                         isDeploying={demo.isDeploying}
                         onDeploy={demo.handleDeploy}
                       />
@@ -101,8 +102,8 @@ export function WizardFullDemo() {
                     <DeployStepBody
                       workerName={demo.workerName}
                       onWorkerNameChange={demo.setWorkerName}
+                      nameStatus={demo.nameStatus}
                       nameError={demo.nameError}
-                      onNameErrorChange={demo.setNameError}
                     />
                   </Wizard.Page>
                   {demo.isDeploying && (

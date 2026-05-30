@@ -15,8 +15,10 @@ const DEFAULT_MAX_HEIGHT =
   "min(calc(100vh - var(--wizard-content-top, 180px) - 2rem), max(calc(100vh - 400px), 320px))";
 
 export interface WizardPageProps {
-  /** Card heading text. */
-  title?: string;
+  /** Card body content. */
+  children: ReactNode;
+  /** Additional CSS classes for the card. */
+  className?: string;
   /** Description shown below the title. */
   description?: string | ReactNode;
   /** Footer content (e.g., navigation buttons). Rendered outside the primary card surface. */
@@ -26,10 +28,8 @@ export interface WizardPageProps {
    * @default "min(calc(100vh - var(--wizard-content-top, 180px) - 2rem), max(calc(100vh - 400px), 320px))"
    */
   maxHeight?: string;
-  /** Additional CSS classes for the card. */
-  className?: string;
-  /** Card body content. */
-  children: ReactNode;
+  /** Card heading text. */
+  title?: string;
 }
 
 /**
@@ -53,20 +53,20 @@ export interface WizardPageProps {
  * ```
  */
 function WizardPage({
-  title,
+  children,
+  className,
   description,
   footer,
   maxHeight = DEFAULT_MAX_HEIGHT,
-  className,
-  children,
+  title,
 }: WizardPageProps) {
   return (
     <>
       <LayerCard
+        className={cn("relative flex flex-col rounded-xl", className)}
         data-kumo-component="Wizard"
         data-kumo-part="page"
         data-wizard-card=""
-        className={cn("relative flex flex-col rounded-xl", className)}
         style={{ maxHeight }}
       >
         <LayerCard.Primary className="min-h-0 flex-1 p-0">

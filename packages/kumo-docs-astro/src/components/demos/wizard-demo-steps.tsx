@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { type ChangeEvent } from "react";
 import {
   Button,
   Text,
@@ -8,6 +8,7 @@ import {
   Loader,
   useWizard,
 } from "@cloudflare/kumo";
+import type { NameStatus } from "./use-create-worker-demo";
 import { ShikiProvider, CodeHighlighted } from "@cloudflare/kumo/code";
 import {
   ArrowUpRightIcon,
@@ -126,19 +127,38 @@ export function SelectTemplateFooter() {
 export function SetupBody({
   workerName,
   onWorkerNameChange,
+  nameStatus,
+  nameError,
 }: {
   workerName: string;
   onWorkerNameChange: (name: string) => void;
+  nameStatus: NameStatus;
+  nameError: string;
 }) {
   return (
     <div className="flex flex-col gap-6">
-      <InputGroup label="Worker name">
+      <InputGroup
+        label="Worker name"
+        error={nameError ? { message: nameError, match: true } : undefined}
+      >
         <InputGroup.Input
           placeholder="my-worker"
           value={workerName}
-          onChange={(e) => onWorkerNameChange(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            onWorkerNameChange(e.target.value)
+          }
         />
         <InputGroup.Suffix>.workers.dev</InputGroup.Suffix>
+        {nameStatus === "checking" && (
+          <InputGroup.Addon align="end">
+            <Loader />
+          </InputGroup.Addon>
+        )}
+        {nameStatus === "available" && (
+          <InputGroup.Addon align="end">
+            <CheckCircleIcon weight="duotone" className="text-kumo-success" />
+          </InputGroup.Addon>
+        )}
       </InputGroup>
       <Input
         defaultValue="npm run build"
@@ -189,56 +209,38 @@ export function SetupFooter({
 interface DeployStepBodyProps {
   workerName: string;
   onWorkerNameChange: (name: string) => void;
+  nameStatus: NameStatus;
   nameError: string;
-  onNameErrorChange: (error: string) => void;
 }
 
 export function DeployStepBody({
   workerName,
   onWorkerNameChange,
+  nameStatus,
   nameError,
-  onNameErrorChange,
 }: DeployStepBodyProps) {
-  const [nameStatus, setNameStatus] = useState<"idle" | "loading" | "success">(
-    "success",
-  );
-  const nameTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
-
-  useEffect(() => {
-    return () => {
-      if (nameTimerRef.current) clearTimeout(nameTimerRef.current);
-    };
-  }, []);
-
-  const handleWorkerNameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const next = e.target.value;
-    onWorkerNameChange(next);
-    if (nameError) onNameErrorChange("");
-    if (nameTimerRef.current) clearTimeout(nameTimerRef.current);
-    if (next.length > 0) {
-      setNameStatus("loading");
-      nameTimerRef.current = setTimeout(() => setNameStatus("success"), 1000);
-    } else {
-      setNameStatus("idle");
-    }
-  };
-
   return (
     <div className="flex flex-col gap-4">
-      <InputGroup label="Worker name">
+      <InputGroup
+        label="Worker name"
+        error={nameError ? { message: nameError, match: true } : undefined}
+      >
         <InputGroup.Input
           placeholder="my-worker"
           value={workerName}
-          onChange={handleWorkerNameChange}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            onWorkerNameChange(e.target.value)
+          }
         />
         <InputGroup.Suffix>.workers.dev</InputGroup.Suffix>
-        {nameStatus !== "idle" && (
+        {nameStatus === "checking" && (
           <InputGroup.Addon align="end">
-            {nameStatus === "loading" ? (
-              <Loader />
-            ) : (
-              <CheckCircleIcon weight="duotone" className="text-kumo-success" />
-            )}
+            <Loader />
+          </InputGroup.Addon>
+        )}
+        {nameStatus === "available" && (
+          <InputGroup.Addon align="end">
+            <CheckCircleIcon weight="duotone" className="text-kumo-success" />
           </InputGroup.Addon>
         )}
       </InputGroup>
@@ -261,11 +263,9 @@ export function DeployStepBody({
 }
 
 export function DeployStepFooter({
-  nameError,
   isDeploying,
   onDeploy,
 }: {
-  nameError: string;
   isDeploying: boolean;
   onDeploy: () => void;
 }) {
@@ -276,11 +276,6 @@ export function DeployStepFooter({
       <Button variant="ghost" onClick={back} disabled={isDeploying}>
         Back
       </Button>
-      {nameError && (
-        <Text size="sm" variant="error">
-          {nameError}
-        </Text>
-      )}
       <Button
         variant="primary"
         onClick={onDeploy}

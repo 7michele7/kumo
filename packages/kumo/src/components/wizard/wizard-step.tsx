@@ -50,12 +50,14 @@ function getStepVariant(index: number, currentStep: number) {
 }
 
 export interface WizardStepProps {
-  /** Unique key for this step. Avoid `key` since it's a React reserved prop. */
-  stepKey: string;
-  /** Label shown in the sidebar navigation. */
-  label?: string;
+  /** Step content — typically a `Wizard.Page`. */
+  children: ReactNode;
   /** Whether to hide this step from the sidebar. @default false */
   hideFromSidebar?: boolean;
+  /** Label shown in the sidebar navigation. */
+  label?: string;
+  /** Unique key for this step. Avoid `key` since it's a React reserved prop. */
+  stepKey: string;
   /**
    * Whether this step is active in the current flow. When `false`, the step
    * is excluded from rendering, indexing, sidebar, and navigation — as if it
@@ -63,8 +65,6 @@ export interface WizardStepProps {
    * @default true
    */
   when?: boolean;
-  /** Step content — typically a `Wizard.Page`. */
-  children: ReactNode;
 }
 
 /**
@@ -84,7 +84,7 @@ export interface WizardStepProps {
  */
 const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
   function WizardStep(
-    { stepKey, label, hideFromSidebar = false, children },
+    { children, hideFromSidebar = false, label, stepKey },
     ref,
   ) {
     const {
@@ -152,20 +152,12 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
 
     return (
       <motion.div
-        ref={stepRefCallback}
-        data-kumo-component="Wizard"
-        data-kumo-part="step"
-        data-step-key={stepKey}
-        data-step-active={isActive ? "" : undefined}
-        variants={stepVariants}
-        initial={false}
         animate={getStepVariant(index, step)}
-        transition={{
-          type: "tween",
-          duration: shouldReduceMotion ? 0 : 0.6,
-          ease: [0.3, 1, 0.35, 1],
-        }}
-        onAnimationComplete={handleAnimationComplete}
+        // Hide non-current/non-previous steps from screen readers (WCAG 2.1 SC 1.3.1, 4.1.2)
+        aria-hidden={!isActive && !isPrevious}
+        aria-label={
+          isPrevious ? labels.goBackTo(label || labels.previousStep) : undefined
+        }
         className={cn(
           // Position card at the grid-line offset. origin-bottom makes
           // scale(0.85) pivot at the bottom edge so the previous-step peek
@@ -180,10 +172,12 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
           !isActive && "select-none",
           isAnimating && "animating",
         )}
-        // Tab order: only active and previous steps are focusable
-        tabIndex={
-          isActive ? (activeStepFocusable ? 0 : -1) : isPrevious ? 0 : -1
-        }
+        data-kumo-component="Wizard"
+        data-kumo-part="step"
+        data-step-active={isActive ? "" : undefined}
+        data-step-key={stepKey}
+        initial={false}
+        onAnimationComplete={handleAnimationComplete}
         onClick={() => {
           if (lockTabMenu) return;
           // Only the immediately-previous step is an interactive go-back target
@@ -199,12 +193,18 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
             }
           }
         }}
-        // Hide non-current/non-previous steps from screen readers (WCAG 2.1 SC 1.3.1, 4.1.2)
-        aria-hidden={!isActive && !isPrevious}
-        aria-label={
-          isPrevious ? labels.goBackTo(label || labels.previousStep) : undefined
-        }
+        ref={stepRefCallback}
         role={isPrevious ? "button" : undefined}
+        // Tab order: only active and previous steps are focusable
+        tabIndex={
+          isActive ? (activeStepFocusable ? 0 : -1) : isPrevious ? 0 : -1
+        }
+        transition={{
+          type: "tween",
+          duration: shouldReduceMotion ? 0 : 0.6,
+          ease: [0.3, 1, 0.35, 1],
+        }}
+        variants={stepVariants}
       >
         <StepContext.Provider value={stepContextValue}>
           {children}

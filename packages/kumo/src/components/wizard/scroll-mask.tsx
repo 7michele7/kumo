@@ -3,12 +3,12 @@ import { ScrollArea } from "@base-ui/react/scroll-area";
 import { cn } from "../../utils/cn";
 
 interface ScrollMaskProps {
+  className?: string;
   /**
    * Size of the fade gradient in pixels.
    * @default 36
    */
   maskSize?: number;
-  className?: string;
   /** Additional classes for the outer ScrollArea.Root wrapper. */
   rootClassName?: string;
   style?: CSSProperties;
@@ -27,9 +27,9 @@ interface ScrollMaskProps {
 export function ScrollMask({
   children,
   className,
+  maskSize = 36,
   rootClassName,
   style,
-  maskSize = 36,
 }: PropsWithChildren<ScrollMaskProps>) {
   return (
     <ScrollArea.Root

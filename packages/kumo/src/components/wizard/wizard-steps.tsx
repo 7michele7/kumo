@@ -4,10 +4,10 @@ import { StepIndexContext } from "./wizard";
 import type { WizardStepProps } from "./wizard-step";
 
 export interface WizardStepsProps {
-  /** Additional CSS classes for the step container. */
-  className?: string;
   /** Step children — should be `Wizard.Step` elements. */
   children: ReactNode;
+  /** Additional CSS classes for the step container. */
+  className?: string;
 }
 
 /**
@@ -29,7 +29,7 @@ export interface WizardStepsProps {
  * </Wizard.Steps>
  * ```
  */
-function WizardSteps({ className, children }: WizardStepsProps) {
+function WizardSteps({ children, className }: WizardStepsProps) {
   // Filter out falsy children (from {cond && <Step>}) and steps with when={false}.
   const activeChildren = Children.toArray(children)
     .filter(isValidElement)
@@ -44,9 +44,9 @@ function WizardSteps({ className, children }: WizardStepsProps) {
 
   return (
     <div
+      className={cn("absolute inset-0 overflow-hidden", className)}
       data-kumo-component="Wizard"
       data-kumo-part="steps"
-      className={cn("absolute inset-0 overflow-hidden", className)}
     >
       {indexedChildren}
     </div>

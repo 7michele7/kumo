@@ -29,12 +29,12 @@ export function WizardSidebar({ className }: WizardSidebarProps) {
 
   return (
     <div
-      data-kumo-component="Wizard"
-      data-kumo-part="sidebar"
       className={cn(
-        "absolute start-full top-[var(--wizard-content-top,180px)] hidden w-max translate-x-5 flex-col rtl:-translate-x-5 @5xl/wizard:flex",
+        "absolute start-full top-(--wizard-content-top,180px) hidden w-max translate-x-5 flex-col rtl:-translate-x-5 @5xl/wizard:flex",
         className,
       )}
+      data-kumo-component="Wizard"
+      data-kumo-part="sidebar"
     >
       {visibleItems.map((item) => {
         // Find the original index in the full items array
@@ -66,13 +66,13 @@ export function WizardSidebar({ className }: WizardSidebarProps) {
         if (isClickable) {
           return (
             <button
-              key={item.key}
-              type="button"
               className={cn(
                 sharedClassName,
                 "cursor-pointer hover:bg-kumo-fill-hover",
               )}
+              key={item.key}
               onClick={() => onStepChange(originalIndex)}
+              type="button"
             >
               <div className={dotClassName} />
               {label}

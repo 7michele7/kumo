@@ -37,17 +37,17 @@ const widthValueMap: Record<WizardGridWidth, string> = {
 const CARD_MAX_WIDTH_CLASS = "max-w-[var(--wizard-card-max-width,38rem)]";
 
 export interface WizardGridProps {
-  children: ReactNode;
-  className?: string;
-  width?: WizardGridWidth;
-  /** Title displayed on the left side, visible at `lg` (1024px). */
-  title?: string;
   /** Measured height of the active card for border/cross animation. */
   activeCardHeight: number;
+  children: ReactNode;
+  className?: string;
   /** Whether a step transition is in progress. */
   isTransitioning: boolean;
+  /** Title displayed on the left side, visible at `lg` (1024px). */
+  title?: string;
   /** Distance from viewport top to the grid. @default 147 */
   topOffset?: number;
+  width?: WizardGridWidth;
 }
 
 interface WizardGridInternalProps {
@@ -62,14 +62,14 @@ interface WizardGridInternalProps {
 }
 
 function WizardGridAnimated({
+  activeCardHeight,
   children,
   className,
-  title,
-  activeCardHeight,
   isTransitioning,
   shouldReduceMotion,
-  width,
+  title,
   topOffset,
+  width,
 }: WizardGridInternalProps) {
   // Rebased to the adaptive container (topOffset removed — container owns the base offset)
   const bottomCrossTop = useMemo(
@@ -162,9 +162,9 @@ function WizardGridAnimated({
 
           {/* Bottom crosses — animate with card height */}
           <motion.div
+            animate={{ top: bottomCrossTop }}
             className="absolute inset-x-[-9px] z-10"
             initial={false}
-            animate={{ top: bottomCrossTop }}
             transition={animationTransition}
           >
             <div className={cn(crossClasses, "left-0 -rotate-90")} />
@@ -179,8 +179,6 @@ function WizardGridAnimated({
 
           {/* Bottom horizontal border — animated position */}
           <motion.div
-            className="absolute left-1/2 w-screen -translate-x-1/2 border-x-0 border-t border-b-0 border-dashed border-kumo-hairline"
-            initial={false}
             animate={{
               top: `${
                 CONTENT_OFFSET -
@@ -190,6 +188,8 @@ function WizardGridAnimated({
                   : REFERENCE_HEIGHT)
               }px`,
             }}
+            className="absolute left-1/2 w-screen -translate-x-1/2 border-x-0 border-t border-b-0 border-dashed border-kumo-hairline"
+            initial={false}
             transition={animationTransition}
           />
         </div>
@@ -218,25 +218,25 @@ function WizardGridAnimated({
  * ```
  */
 export function WizardGrid({
+  activeCardHeight,
   children,
   className,
-  width = "narrow",
-  title,
-  activeCardHeight,
   isTransitioning,
+  title,
   topOffset = DEFAULT_TOP_OFFSET,
+  width = "narrow",
 }: WizardGridProps) {
   const shouldReduceMotion = useReducedMotion();
 
   return (
     <WizardGridAnimated
-      className={className}
-      title={title}
       activeCardHeight={activeCardHeight}
+      className={className}
       isTransitioning={isTransitioning}
       shouldReduceMotion={shouldReduceMotion ?? false}
-      width={width}
+      title={title}
       topOffset={topOffset}
+      width={width}
     >
       {children}
     </WizardGridAnimated>

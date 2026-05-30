@@ -99,19 +99,19 @@ const WizardContext = createContext<WizardContextValue | null>(null);
 // accessible via useWizardInternal() for Wizard.Step and the sidebar.
 export type UseWizardReturn = Pick<
   WizardContextValue,
-  | "step"
-  | "stepKey"
-  | "onStepChange"
-  | "goToStep"
-  | "next"
   | "back"
   | "complete"
-  | "totalSteps"
-  | "items"
+  | "goToStep"
   | "isChangingStep"
-  | "isLastStep"
   | "isFirstStep"
+  | "isLastStep"
+  | "items"
   | "lockTabMenu"
+  | "next"
+  | "onStepChange"
+  | "step"
+  | "stepKey"
+  | "totalSteps"
 >;
 
 /**
@@ -179,23 +179,24 @@ function resolveStepIndex(
  * Wizard component props — the root context provider and animation engine.
  */
 export interface WizardProps {
-  /**
-   * Current active step (0-based index or `stepKey` string) in controlled mode.
-   * When provided, the wizard is controlled — the consumer owns step state.
-   * When omitted, the wizard manages its own step state internally (uncontrolled).
-   */
-  step?: number | string;
+  /** Wizard content — `Wizard.Steps`, `Wizard.Step`, etc. */
+  children: ReactNode;
+  /** Additional CSS classes merged via `cn()`. */
+  className?: string;
   /**
    * Initial step (index or `stepKey`) for uncontrolled mode. Ignored when `step` is provided.
    * @default 0
    */
   defaultStep?: number | string;
+  /** Labels for internationalization of aria-labels. All labels have English defaults. */
+  labels?: WizardLabels;
+  /** When true, prevents clicking previous steps to navigate back. @default false */
+  lockTabMenu?: boolean;
   /**
-   * Callback when the wizard wants to change step (after `onBeforeStepChange` passes).
-   * In controlled mode the consumer must update `step`; in uncontrolled mode the
-   * wizard also updates its internal state. The second argument is the step's key.
+   * Callback invoked when the active step's DOM element changes.
+   * Used by `useWizardGrid()` to track card height for the animated grid.
    */
-  onStepChange?: (step: number, key: string) => void;
+  onActiveStepElementChange?: (element: HTMLDivElement | null) => void;
   /**
    * Async validation guard fired before every step transition.
    * Return `false` (or resolve to `false`) to block the transition.
@@ -206,24 +207,23 @@ export interface WizardProps {
    * Does not trigger a step change beyond the last index.
    */
   onComplete?: () => void;
-  /** When true, prevents clicking previous steps to navigate back. @default false */
-  lockTabMenu?: boolean;
   /**
-   * Callback invoked when the active step's DOM element changes.
-   * Used by `useWizardGrid()` to track card height for the animated grid.
+   * Callback when the wizard wants to change step (after `onBeforeStepChange` passes).
+   * In controlled mode the consumer must update `step`; in uncontrolled mode the
+   * wizard also updates its internal state. The second argument is the step's key.
    */
-  onActiveStepElementChange?: (element: HTMLDivElement | null) => void;
+  onStepChange?: (step: number, key: string) => void;
   /**
    * Renders the step-indicator sidebar. Visible at wide viewports (`@5xl`).
    * @default true
    */
   sidebar?: boolean;
-  /** Additional CSS classes merged via `cn()`. */
-  className?: string;
-  // Labels for internationalization of aria-labels. All labels have English defaults.
-  labels?: WizardLabels;
-  /** Wizard content — `Wizard.Steps`, `Wizard.Step`, etc. */
-  children: ReactNode;
+  /**
+   * Current active step (0-based index or `stepKey` string) in controlled mode.
+   * When provided, the wizard is controlled — the consumer owns step state.
+   * When omitted, the wizard manages its own step state internally (uncontrolled).
+   */
+  step?: number | string;
 }
 
 /**
@@ -265,17 +265,17 @@ export interface WizardProps {
  * ```
  */
 function WizardRoot({
-  step: stepProp,
+  children,
+  className,
   defaultStep = 0,
-  onStepChange: onStepChangeProp,
-  onBeforeStepChange,
-  onComplete,
+  labels: labelsProp,
   lockTabMenu = false,
   onActiveStepElementChange,
+  onBeforeStepChange,
+  onComplete,
+  onStepChange: onStepChangeProp,
   sidebar = true,
-  className,
-  labels: labelsProp,
-  children,
+  step: stepProp,
 }: WizardProps) {
   // Require Wizard.Fullscreen ancestor
   const { closeButtonRef } = useWizardFullscreen();
@@ -367,20 +367,20 @@ function WizardRoot({
     (key: string) => {
       const index = resolveStepIndex(key, itemsRef.current);
       if (index === -1) return;
-      handleStepChange(index);
+      void handleStepChange(index);
     },
     [handleStepChange],
   );
 
   const next = useCallback(() => {
     if (step < itemsRef.current.length - 1) {
-      handleStepChange(step + 1);
+      void handleStepChange(step + 1);
     }
   }, [step, handleStepChange]);
 
   const back = useCallback(() => {
     if (step > 0) {
-      handleStepChange(step - 1);
+      void handleStepChange(step - 1);
     }
   }, [step, handleStepChange]);
 
@@ -506,62 +506,62 @@ function WizardRoot({
 
   const contextValue = useMemo<WizardContextValue>(
     () => ({
-      step,
-      stepKey,
-      onStepChange: handleStepChange,
-      goToStep,
-      next,
-      back,
-      lockTabMenu,
-      totalSteps,
-      items,
-      registerStep,
-      unregisterStep,
-      shouldReduceMotion,
-      isAnimating,
-      setIsAnimating,
       activeStepFocusable,
-      setActiveStepFocusable,
-      stepElementsRef,
-      currentStepRef,
-      isChangingStep,
-      isLastStep,
-      isFirstStep,
+      back,
       complete,
+      currentStepRef,
+      goToStep,
+      isAnimating,
+      isChangingStep,
+      isFirstStep,
+      isLastStep,
+      items,
       labels,
+      lockTabMenu,
+      next,
+      onStepChange: handleStepChange,
+      registerStep,
+      setActiveStepFocusable,
+      setIsAnimating,
+      shouldReduceMotion,
+      step,
+      stepElementsRef,
+      stepKey,
+      totalSteps,
+      unregisterStep,
     }),
     [
+      activeStepFocusable,
+      back,
+      complete,
+      goToStep,
+      handleStepChange,
+      isAnimating,
+      isChangingStep,
+      isFirstStep,
+      isLastStep,
+      items,
+      labels,
+      lockTabMenu,
+      next,
+      registerStep,
+      shouldReduceMotion,
       step,
       stepKey,
-      handleStepChange,
-      goToStep,
-      next,
-      back,
-      lockTabMenu,
       totalSteps,
-      items,
-      registerStep,
       unregisterStep,
-      shouldReduceMotion,
-      isAnimating,
-      activeStepFocusable,
-      isChangingStep,
-      isLastStep,
-      isFirstStep,
-      complete,
-      labels,
     ],
   );
 
   return (
     <WizardContext.Provider value={contextValue}>
       <div
-        ref={modalContainerRef}
-        data-kumo-component="Wizard"
         className={cn(
           "@container relative isolate mx-auto w-full min-h-screen max-w-(--wizard-card-max-width,38rem)",
           className,
         )}
+        data-kumo-component="Wizard"
+        ref={modalContainerRef}
       >
         {children}
         {sidebar && <WizardSidebar />}

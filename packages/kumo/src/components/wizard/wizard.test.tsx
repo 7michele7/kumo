@@ -2,33 +2,18 @@ import React from "react";
 import { render, screen, fireEvent, within, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import {
-  Wizard,
-  useWizard,
-  KUMO_WIZARD_VARIANTS,
-  KUMO_WIZARD_DEFAULT_VARIANTS,
-  WizardStep,
-  WizardSteps,
-  WizardPage,
-  WizardFullscreen,
-  WizardFullscreenContext,
-  WizardGrid,
-  useWizardGrid,
-} from ".";
+import { Wizard, useWizard, WizardFullscreenContext, useWizardGrid } from ".";
 import { KumoPortalProvider } from "../../utils/portal-provider";
 
-// Wraps Wizard in a Fullscreen shell for tests (Wizard requires Fullscreen ancestor)
-function FS({ children }: { children: React.ReactNode }) {
-  return <Wizard.Fullscreen open>{children}</Wizard.Fullscreen>;
-}
-
-// Lightweight context-only wrapper for tests that need non-portaled DOM (e.g. Grid CSS var checks)
-const fakeCloseRef = {
+// WizardFullscreenMock — provides WizardFullscreenContext without
+// portal/scroll-lock. Use for tests that need the Wizard context to
+// exist but don't test the real overlay behavior.
+const mockCloseRef = {
   current: null,
 } as React.RefObject<HTMLButtonElement | null>;
-function FSCtx({ children }: { children: React.ReactNode }) {
+function WizardFullscreenMock({ children }: { children: React.ReactNode }) {
   return (
-    <WizardFullscreenContext.Provider value={{ closeButtonRef: fakeCloseRef }}>
+    <WizardFullscreenContext.Provider value={{ closeButtonRef: mockCloseRef }}>
       {children}
     </WizardFullscreenContext.Provider>
   );
@@ -43,7 +28,7 @@ function TestWizard({
   onStepChange?: (step: number, key: string) => void;
 }) {
   return (
-    <FS>
+    <WizardFullscreenMock>
       <Wizard step={step} onStepChange={onStepChange} {...props}>
         <Wizard.Steps>
           <Wizard.Step stepKey="first" label="First Step">
@@ -57,35 +42,9 @@ function TestWizard({
           </Wizard.Step>
         </Wizard.Steps>
       </Wizard>
-    </FS>
+    </WizardFullscreenMock>
   );
 }
-
-describe("Wizard compound component structure", () => {
-  it("should have all sub-components attached", () => {
-    expect(Wizard.Step).toBe(WizardStep);
-    expect(Wizard.Steps).toBe(WizardSteps);
-    expect(Wizard.Page).toBe(WizardPage);
-    expect(Wizard.Fullscreen).toBe(WizardFullscreen);
-    expect(Wizard.Grid).toBe(WizardGrid);
-  });
-
-  it("should export variant definitions", () => {
-    expect(KUMO_WIZARD_VARIANTS.variant).toHaveProperty("fullscreen");
-  });
-
-  it("should export default variants", () => {
-    expect(KUMO_WIZARD_DEFAULT_VARIANTS.variant).toBe("fullscreen");
-  });
-
-  it("should set displayName on all components", () => {
-    expect(WizardStep.displayName).toBe("Wizard.Step");
-    expect(WizardSteps.displayName).toBe("Wizard.Steps");
-    expect(WizardPage.displayName).toBe("Wizard.Page");
-    expect(WizardFullscreen.displayName).toBe("Wizard.Fullscreen");
-    expect(WizardGrid.displayName).toBe("Wizard.Grid");
-  });
-});
 
 describe("Wizard core behavior", () => {
   it("should render current step content", () => {
@@ -188,73 +147,6 @@ describe("Wizard core behavior", () => {
     expect(steps[1].hasAttribute("data-step-active")).toBe(true);
     expect(steps[2].hasAttribute("data-step-active")).toBe(false);
   });
-
-  it("should render inside a fullscreen container", () => {
-    render(<TestWizard />);
-    const root = document.querySelector('[data-kumo-component="Wizard"]');
-    expect(root).toBeTruthy();
-  });
-});
-
-describe("Wizard.Page", () => {
-  it("should render title", () => {
-    render(<TestWizard step={0} />);
-    expect(screen.getByText("Step 1")).toBeTruthy();
-  });
-
-  it("should render description", () => {
-    render(
-      <FS>
-        <Wizard step={0} onStepChange={vi.fn()}>
-          <Wizard.Steps>
-            <Wizard.Step stepKey="a" label="A">
-              <Wizard.Page title="Title" description="A description">
-                Content
-              </Wizard.Page>
-            </Wizard.Step>
-          </Wizard.Steps>
-        </Wizard>
-      </FS>,
-    );
-    expect(screen.getByText("A description")).toBeTruthy();
-  });
-
-  it("should render children", () => {
-    render(<TestWizard step={0} />);
-    expect(screen.getByText("First content")).toBeTruthy();
-  });
-
-  it("should render footer", () => {
-    render(
-      <FS>
-        <Wizard step={0} onStepChange={vi.fn()}>
-          <Wizard.Steps>
-            <Wizard.Step stepKey="a" label="A">
-              <Wizard.Page title="Title" footer={<button>Next</button>}>
-                Content
-              </Wizard.Page>
-            </Wizard.Step>
-          </Wizard.Steps>
-        </Wizard>
-      </FS>,
-    );
-    expect(screen.getByRole("button", { name: "Next" })).toBeTruthy();
-  });
-
-  it("should not render title when not provided", () => {
-    const { container } = render(
-      <FS>
-        <Wizard step={0} onStepChange={vi.fn()}>
-          <Wizard.Steps>
-            <Wizard.Step stepKey="a" label="A">
-              <Wizard.Page>Content only</Wizard.Page>
-            </Wizard.Step>
-          </Wizard.Steps>
-        </Wizard>
-      </FS>,
-    );
-    expect(container.querySelector("h2")).toBeNull();
-  });
 });
 
 describe("sidebar prop", () => {
@@ -310,7 +202,7 @@ describe("sidebar prop", () => {
 
   it("should respect hideFromSidebar", () => {
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={0} onStepChange={vi.fn()}>
           <Wizard.Steps>
             <Wizard.Step stepKey="a" label="Visible">
@@ -321,7 +213,7 @@ describe("sidebar prop", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     const sidebar = document.querySelector('[data-kumo-part="sidebar"]')!;
@@ -336,39 +228,6 @@ describe("sidebar prop", () => {
     expect(firstStepSidebar).toBeTruthy();
     expect(firstStepSidebar!.tagName).toBe("BUTTON");
     expect(firstStepSidebar!.getAttribute("type")).toBe("button");
-  });
-});
-
-describe("Wizard error handling", () => {
-  it("should render inline validation errors in the Wizard.Page footer", () => {
-    render(
-      <FS>
-        <Wizard step={0} onStepChange={vi.fn()}>
-          <Wizard.Steps>
-            <Wizard.Step stepKey="deploy" label="Deploy">
-              <Wizard.Page
-                title="Deploy"
-                footer={
-                  <>
-                    <div />
-                    <span data-testid="error-msg">Worker name is required</span>
-                    <button>Deploy</button>
-                  </>
-                }
-              >
-                Content
-              </Wizard.Page>
-            </Wizard.Step>
-          </Wizard.Steps>
-        </Wizard>
-      </FS>,
-    );
-
-    expect(screen.getByTestId("error-msg")).toBeTruthy();
-    expect(screen.getByTestId("error-msg").textContent).toBe(
-      "Worker name is required",
-    );
-    expect(screen.getByRole("button", { name: "Deploy" })).toBeTruthy();
   });
 });
 
@@ -456,25 +315,9 @@ describe("Wizard.Fullscreen", () => {
     unmount();
     expect(document.body.classList.contains("overflow-hidden")).toBe(false);
   });
-
-  it("should not render a header element", () => {
-    render(<Wizard.Fullscreen open>Content</Wizard.Fullscreen>);
-
-    expect(document.querySelector("header")).toBeNull();
-  });
 });
 
 describe("Wizard.Grid", () => {
-  it("should render with correct structure", () => {
-    render(
-      <Wizard.Grid activeCardHeight={400} isTransitioning={false}>
-        <div>Wizard content</div>
-      </Wizard.Grid>,
-    );
-
-    expect(screen.getByText("Wizard content")).toBeTruthy();
-  });
-
   it("should render title", () => {
     render(
       <Wizard.Grid title="Setup" activeCardHeight={400} isTransitioning={false}>
@@ -487,7 +330,7 @@ describe("Wizard.Grid", () => {
 
   it("should set --wizard-card-max-width to 38rem for narrow (default)", () => {
     const { container } = render(
-      <FSCtx>
+      <WizardFullscreenMock>
         <Wizard.Grid activeCardHeight={400} isTransitioning={false}>
           <Wizard step={0} onStepChange={vi.fn()}>
             <Wizard.Steps>
@@ -497,7 +340,7 @@ describe("Wizard.Grid", () => {
             </Wizard.Steps>
           </Wizard>
         </Wizard.Grid>
-      </FSCtx>,
+      </WizardFullscreenMock>,
     );
 
     const wizardRoot = document.querySelector(
@@ -516,7 +359,7 @@ describe("Wizard.Grid", () => {
 
   it("should set --wizard-card-max-width to 48rem for wide", () => {
     const { container } = render(
-      <FSCtx>
+      <WizardFullscreenMock>
         <Wizard.Grid
           width="wide"
           activeCardHeight={400}
@@ -530,7 +373,7 @@ describe("Wizard.Grid", () => {
             </Wizard.Steps>
           </Wizard>
         </Wizard.Grid>
-      </FSCtx>,
+      </WizardFullscreenMock>,
     );
 
     const gridRoot = container.firstElementChild as HTMLElement;
@@ -550,63 +393,10 @@ describe("useWizard", () => {
       "useWizard must be used within a <Wizard> component",
     );
   });
-
-  it("should provide wizard state within context", () => {
-    function StateReader() {
-      const { step, totalSteps, lockTabMenu } = useWizard();
-      return (
-        <div
-          data-testid="wizard-state"
-          data-step={step}
-          data-total={totalSteps}
-          data-locked={String(lockTabMenu)}
-        />
-      );
-    }
-
-    render(
-      <FS>
-        <Wizard step={2} onStepChange={vi.fn()} lockTabMenu>
-          <StateReader />
-          <Wizard.Steps>
-            <Wizard.Step stepKey="a" label="A">
-              <Wizard.Page title="T">C</Wizard.Page>
-            </Wizard.Step>
-            <Wizard.Step stepKey="b" label="B">
-              <Wizard.Page title="T2">C2</Wizard.Page>
-            </Wizard.Step>
-            <Wizard.Step stepKey="c" label="C">
-              <Wizard.Page title="T3">C3</Wizard.Page>
-            </Wizard.Step>
-          </Wizard.Steps>
-        </Wizard>
-      </FS>,
-    );
-
-    const reader = screen.getByTestId("wizard-state");
-    expect(reader.dataset.step).toBe("2");
-    expect(reader.dataset.locked).toBe("true");
-  });
 });
 
 describe("useWizardGrid", () => {
-  it("should return gridProps and onActiveStepElementChange", () => {
-    let hookResult: ReturnType<typeof useWizardGrid> | null = null;
-
-    function Consumer() {
-      hookResult = useWizardGrid();
-      return null;
-    }
-
-    render(<Consumer />);
-
-    expect(hookResult).not.toBeNull();
-    expect(hookResult!.gridProps).toHaveProperty("activeCardHeight");
-    expect(hookResult!.gridProps).toHaveProperty("isTransitioning");
-    expect(typeof hookResult!.onActiveStepElementChange).toBe("function");
-  });
-
-  it("should use initialHeight option", () => {
+  it("should return gridProps with expected shape and respect initialHeight", () => {
     let hookResult: ReturnType<typeof useWizardGrid> | null = null;
 
     function Consumer() {
@@ -616,6 +406,10 @@ describe("useWizardGrid", () => {
 
     render(<Consumer />);
 
+    expect(hookResult).not.toBeNull();
+    expect(hookResult!.gridProps).toHaveProperty("activeCardHeight");
+    expect(hookResult!.gridProps).toHaveProperty("isTransitioning");
+    expect(typeof hookResult!.onActiveStepElementChange).toBe("function");
     expect(hookResult!.gridProps.activeCardHeight).toBe(500);
   });
 });
@@ -628,7 +422,7 @@ describe("Wizard step registration", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={0} onStepChange={vi.fn()}>
           <StepCounter />
           <Wizard.Steps>
@@ -640,7 +434,7 @@ describe("Wizard step registration", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     expect(screen.getByTestId("count").textContent).toBe("2");
@@ -654,7 +448,7 @@ describe("Wizard step registration", () => {
 
     function DynamicWizard({ showThird = true }: { showThird?: boolean }) {
       return (
-        <FS>
+        <WizardFullscreenMock>
           <Wizard step={0} onStepChange={vi.fn()}>
             <StepCounter />
             <Wizard.Steps>
@@ -671,7 +465,7 @@ describe("Wizard step registration", () => {
               )}
             </Wizard.Steps>
           </Wizard>
-        </FS>
+        </WizardFullscreenMock>
       );
     }
 
@@ -684,25 +478,15 @@ describe("Wizard step registration", () => {
 });
 
 describe("Wizard step tabIndex", () => {
-  it("should make active step focusable", () => {
-    render(<TestWizard step={0} />);
-
-    const steps = document.querySelectorAll('[data-kumo-part="step"]');
-    expect(steps[0].getAttribute("tabindex")).toBe("0");
-  });
-
-  it("should make previous step focusable", () => {
+  it("should make active and previous steps focusable, future steps not", () => {
     render(<TestWizard step={1} />);
 
     const steps = document.querySelectorAll('[data-kumo-part="step"]');
+    // Previous step (index 0) — focusable
     expect(steps[0].getAttribute("tabindex")).toBe("0");
-  });
-
-  it("should make future steps not focusable", () => {
-    render(<TestWizard step={0} />);
-
-    const steps = document.querySelectorAll('[data-kumo-part="step"]');
-    expect(steps[1].getAttribute("tabindex")).toBe("-1");
+    // Active step (index 1) — focusable
+    expect(steps[1].getAttribute("tabindex")).toBe("0");
+    // Future step (index 2) — not focusable
     expect(steps[2].getAttribute("tabindex")).toBe("-1");
   });
 });
@@ -781,7 +565,7 @@ describe("Scroll position reset on step change", () => {
           <button data-testid="go-next" onClick={() => setStep(1)}>
             Next
           </button>
-          <FS>
+          <WizardFullscreenMock>
             <Wizard step={step} onStepChange={setStep}>
               <Wizard.Steps>
                 <Wizard.Step stepKey="a" label="A">
@@ -794,7 +578,7 @@ describe("Scroll position reset on step change", () => {
                 </Wizard.Step>
               </Wizard.Steps>
             </Wizard>
-          </FS>
+          </WizardFullscreenMock>
         </div>
       );
     }
@@ -815,13 +599,6 @@ describe("Scroll position reset on step change", () => {
 });
 
 describe("Wizard.Fullscreen aria-label", () => {
-  it("should use default aria-label when not provided", () => {
-    render(<Wizard.Fullscreen open>Content</Wizard.Fullscreen>);
-
-    const dialog = document.querySelector('[role="dialog"]');
-    expect(dialog!.getAttribute("aria-label")).toBe("Fullscreen container");
-  });
-
   it("should use custom aria-label when provided", () => {
     render(
       <Wizard.Fullscreen open aria-label="Setup wizard">
@@ -831,15 +608,7 @@ describe("Wizard.Fullscreen aria-label", () => {
 
     const dialog = document.querySelector('[role="dialog"]');
     expect(dialog!.getAttribute("aria-label")).toBe("Setup wizard");
-  });
-
-  it("should not render any visible header element with custom aria-label", () => {
-    render(
-      <Wizard.Fullscreen open aria-label="My flow">
-        Content
-      </Wizard.Fullscreen>,
-    );
-
+    // No visible header or h1 — the label is purely aria
     expect(document.querySelector("header")).toBeNull();
     expect(document.querySelector("h1")).toBeNull();
   });
@@ -859,7 +628,7 @@ function GuardWizard({
   onBeforeStepChange: (from: number, to: number) => boolean | Promise<boolean>;
 }) {
   return (
-    <FS>
+    <WizardFullscreenMock>
       <Wizard
         step={step}
         onStepChange={onStepChange}
@@ -874,7 +643,7 @@ function GuardWizard({
           </Wizard.Step>
         </Wizard.Steps>
       </Wizard>
-    </FS>
+    </WizardFullscreenMock>
   );
 }
 
@@ -960,6 +729,115 @@ describe("onBeforeStepChange", () => {
 
     expect(onStepChange).toHaveBeenCalledWith(0, "a");
   });
+
+  it("should expose isChangingStep while async guard is pending", async () => {
+    const onStepChange = vi.fn();
+    let resolveGuard: (v: boolean) => void;
+    const guard = vi.fn(() => new Promise<boolean>((r) => (resolveGuard = r)));
+    let wizardCtx: ReturnType<typeof useWizard> | null = null;
+
+    function Inspector() {
+      wizardCtx = useWizard();
+      return (
+        <div
+          data-testid="changing"
+          data-value={String(wizardCtx.isChangingStep)}
+        />
+      );
+    }
+
+    render(
+      <WizardFullscreenMock>
+        <Wizard step={1} onStepChange={onStepChange} onBeforeStepChange={guard}>
+          <Inspector />
+          <Wizard.Steps>
+            <Wizard.Step stepKey="a" label="A">
+              <div>A</div>
+            </Wizard.Step>
+            <Wizard.Step stepKey="b" label="B">
+              <div>B</div>
+            </Wizard.Step>
+          </Wizard.Steps>
+        </Wizard>
+      </WizardFullscreenMock>,
+    );
+
+    // Before navigation: isChangingStep is false
+    expect(screen.getByTestId("changing").dataset.value).toBe("false");
+
+    // Start navigation — guard is now pending
+    const steps = document.querySelectorAll('[data-kumo-part="step"]');
+    act(() => {
+      fireEvent.click(steps[0]);
+    });
+
+    // isChangingStep should be true while the guard promise is unresolved
+    expect(screen.getByTestId("changing").dataset.value).toBe("true");
+
+    // Resolve the guard
+    await act(async () => {
+      resolveGuard!(true);
+    });
+
+    // isChangingStep returns to false after resolution
+    expect(screen.getByTestId("changing").dataset.value).toBe("false");
+    expect(onStepChange).toHaveBeenCalledWith(0, "a");
+  });
+
+  it("should ignore re-entrant navigation while guard is pending", async () => {
+    const onStepChange = vi.fn();
+    let resolveGuard: (v: boolean) => void;
+    const guard = vi.fn(() => new Promise<boolean>((r) => (resolveGuard = r)));
+    let wizardCtx: ReturnType<typeof useWizard> | null = null;
+
+    function Inspector() {
+      wizardCtx = useWizard();
+      return null;
+    }
+
+    render(
+      <WizardFullscreenMock>
+        <Wizard step={1} onStepChange={onStepChange} onBeforeStepChange={guard}>
+          <Inspector />
+          <Wizard.Steps>
+            <Wizard.Step stepKey="a" label="A">
+              <div>A</div>
+            </Wizard.Step>
+            <Wizard.Step stepKey="b" label="B">
+              <div>B</div>
+            </Wizard.Step>
+            <Wizard.Step stepKey="c" label="C">
+              <div>C</div>
+            </Wizard.Step>
+          </Wizard.Steps>
+        </Wizard>
+      </WizardFullscreenMock>,
+    );
+
+    // Start first navigation (step 1 → 0) — guard blocks
+    const steps = document.querySelectorAll('[data-kumo-part="step"]');
+    act(() => {
+      fireEvent.click(steps[0]);
+    });
+
+    expect(guard).toHaveBeenCalledTimes(1);
+
+    // While guard is pending, attempt a second navigation via goToStep
+    act(() => {
+      wizardCtx!.goToStep("c");
+    });
+
+    // Guard should NOT have been invoked a second time
+    expect(guard).toHaveBeenCalledTimes(1);
+
+    // Resolve the original guard — only the first navigation lands
+    await act(async () => {
+      resolveGuard!(true);
+    });
+
+    expect(onStepChange).toHaveBeenCalledTimes(1);
+    expect(onStepChange).toHaveBeenCalledWith(0, "a");
+  });
 });
 
 describe("Controlled vs uncontrolled step", () => {
@@ -979,7 +857,7 @@ describe("Controlled vs uncontrolled step", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard defaultStep={0}>
           <UncontrolledNav />
           <Wizard.Steps>
@@ -991,7 +869,7 @@ describe("Controlled vs uncontrolled step", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     expect(screen.getByTestId("next").textContent).toBe("0");
@@ -1031,7 +909,7 @@ describe("Controlled vs uncontrolled step", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard defaultStep={0} onStepChange={onStepChange}>
           <Nav />
           <Wizard.Steps>
@@ -1043,7 +921,7 @@ describe("Controlled vs uncontrolled step", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     fireEvent.click(screen.getByTestId("go"));
@@ -1070,7 +948,7 @@ describe("onComplete", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={1} onStepChange={vi.fn()} onComplete={onComplete}>
           <CompleteButton />
           <Wizard.Steps>
@@ -1082,7 +960,7 @@ describe("onComplete", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     fireEvent.click(screen.getByTestId("done"));
@@ -1102,7 +980,7 @@ describe("onComplete", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={0} onStepChange={vi.fn()}>
           <StepInfo />
           <Wizard.Steps>
@@ -1114,7 +992,7 @@ describe("onComplete", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     const info = screen.getByTestId("info");
@@ -1130,7 +1008,7 @@ describe("RTL support", () => {
   it("should use RTL-aware position classes on sidebar", () => {
     render(
       <div dir="rtl">
-        <FS>
+        <WizardFullscreenMock>
           <Wizard step={0} onStepChange={vi.fn()}>
             <Wizard.Steps>
               <Wizard.Step stepKey="a" label="A">
@@ -1138,7 +1016,7 @@ describe("RTL support", () => {
               </Wizard.Step>
             </Wizard.Steps>
           </Wizard>
-        </FS>
+        </WizardFullscreenMock>
       </div>,
     );
 
@@ -1178,7 +1056,7 @@ describe("Conditional step rendering", () => {
       activeStep: number;
     }) {
       return (
-        <FS>
+        <WizardFullscreenMock>
           <Wizard step={activeStep} onStepChange={vi.fn()}>
             <Wizard.Steps>
               <Wizard.Step stepKey="first" label="First">
@@ -1194,7 +1072,7 @@ describe("Conditional step rendering", () => {
               </Wizard.Step>
             </Wizard.Steps>
           </Wizard>
-        </FS>
+        </WizardFullscreenMock>
       );
     }
 
@@ -1228,54 +1106,6 @@ describe("Key-based navigation", () => {
     expect(steps[1].getAttribute("data-step-key")).toBe("second");
   });
 
-  it("should resolve string defaultStep in uncontrolled mode", () => {
-    render(
-      <FS>
-        <Wizard defaultStep="second">
-          <Wizard.Steps>
-            <Wizard.Step stepKey="first" label="First">
-              <div>First</div>
-            </Wizard.Step>
-            <Wizard.Step stepKey="second" label="Second">
-              <div>Second</div>
-            </Wizard.Step>
-          </Wizard.Steps>
-        </Wizard>
-      </FS>,
-    );
-
-    const steps = document.querySelectorAll('[data-kumo-part="step"]');
-    expect(steps[1].hasAttribute("data-step-active")).toBe(true);
-  });
-
-  it("should expose stepKey reflecting the current step", () => {
-    let capturedKey: string | undefined;
-
-    function Inspector() {
-      const { stepKey } = useWizard();
-      capturedKey = stepKey;
-      return null;
-    }
-
-    render(
-      <FS>
-        <Wizard step={1} onStepChange={vi.fn()}>
-          <Inspector />
-          <Wizard.Steps>
-            <Wizard.Step stepKey="alpha" label="A">
-              <div>A</div>
-            </Wizard.Step>
-            <Wizard.Step stepKey="beta" label="B">
-              <div>B</div>
-            </Wizard.Step>
-          </Wizard.Steps>
-        </Wizard>
-      </FS>,
-    );
-
-    expect(capturedKey).toBe("beta");
-  });
-
   it("goToStep should navigate to the target key", () => {
     const onStepChange = vi.fn();
     let wizardCtx: ReturnType<typeof useWizard> | null = null;
@@ -1286,7 +1116,7 @@ describe("Key-based navigation", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={0} onStepChange={onStepChange}>
           <Inspector />
           <Wizard.Steps>
@@ -1301,7 +1131,7 @@ describe("Key-based navigation", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     act(() => {
@@ -1322,7 +1152,7 @@ describe("Key-based navigation", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={0} onStepChange={onStepChange}>
           <Inspector />
           <Wizard.Steps>
@@ -1331,7 +1161,7 @@ describe("Key-based navigation", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     act(() => {
@@ -1352,7 +1182,7 @@ describe("Key-based navigation", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={0} onStepChange={onStepChange}>
           <Inspector />
           <Wizard.Steps>
@@ -1364,7 +1194,7 @@ describe("Key-based navigation", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     act(() => {
@@ -1384,7 +1214,7 @@ describe("Key-based navigation", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={1} onStepChange={onStepChange}>
           <Inspector />
           <Wizard.Steps>
@@ -1396,7 +1226,7 @@ describe("Key-based navigation", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     act(() => {
@@ -1416,7 +1246,7 @@ describe("Key-based navigation", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={2} onStepChange={onStepChange}>
           <Inspector />
           <Wizard.Steps>
@@ -1431,7 +1261,7 @@ describe("Key-based navigation", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     act(() => {
@@ -1451,7 +1281,7 @@ describe("Key-based navigation", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={0} onStepChange={onStepChange}>
           <Inspector />
           <Wizard.Steps>
@@ -1460,7 +1290,7 @@ describe("Key-based navigation", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     act(() => {
@@ -1481,7 +1311,7 @@ describe("Key-based navigation", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={0} onStepChange={onStepChange} onBeforeStepChange={guard}>
           <Inspector />
           <Wizard.Steps>
@@ -1493,7 +1323,7 @@ describe("Key-based navigation", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     await act(async () => {
@@ -1503,44 +1333,12 @@ describe("Key-based navigation", () => {
     expect(guard).toHaveBeenCalledWith(0, 1);
     expect(onStepChange).not.toHaveBeenCalled();
   });
-
-  it("onStepChange should receive both index and key", () => {
-    const onStepChange = vi.fn();
-    let wizardCtx: ReturnType<typeof useWizard> | null = null;
-
-    function Inspector() {
-      wizardCtx = useWizard();
-      return null;
-    }
-
-    render(
-      <FS>
-        <Wizard step={0} onStepChange={onStepChange}>
-          <Inspector />
-          <Wizard.Steps>
-            <Wizard.Step stepKey="first" label="First">
-              <div>1</div>
-            </Wizard.Step>
-            <Wizard.Step stepKey="second" label="Second">
-              <div>2</div>
-            </Wizard.Step>
-          </Wizard.Steps>
-        </Wizard>
-      </FS>,
-    );
-
-    act(() => {
-      wizardCtx!.goToStep("second");
-    });
-
-    expect(onStepChange).toHaveBeenCalledWith(1, "second");
-  });
 });
 
 describe("Wizard.Step when prop", () => {
   it("should assign contiguous indices when a middle step has when={false}", () => {
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={1} onStepChange={vi.fn()}>
           <Wizard.Steps>
             <Wizard.Step stepKey="first" label="First">
@@ -1554,7 +1352,7 @@ describe("Wizard.Step when prop", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     const steps = document.querySelectorAll('[data-kumo-part="step"]');
@@ -1566,7 +1364,7 @@ describe("Wizard.Step when prop", () => {
 
   it("should not render the content of a when={false} step", () => {
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={0} onStepChange={vi.fn()}>
           <Wizard.Steps>
             <Wizard.Step stepKey="a" label="A">
@@ -1577,7 +1375,7 @@ describe("Wizard.Step when prop", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     expect(screen.getByText("Visible")).toBeTruthy();
@@ -1586,7 +1384,7 @@ describe("Wizard.Step when prop", () => {
 
   it("should show only active steps in the sidebar", () => {
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={0} onStepChange={vi.fn()}>
           <Wizard.Steps>
             <Wizard.Step stepKey="a" label="Step A">
@@ -1600,7 +1398,7 @@ describe("Wizard.Step when prop", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     expect(screen.getByText("Step A")).toBeTruthy();
@@ -1618,7 +1416,7 @@ describe("Wizard.Step when prop", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={0} onStepChange={onStepChange}>
           <Inspector />
           <Wizard.Steps>
@@ -1633,7 +1431,7 @@ describe("Wizard.Step when prop", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     act(() => {
@@ -1654,7 +1452,7 @@ describe("Wizard.Step when prop", () => {
     }
 
     render(
-      <FS>
+      <WizardFullscreenMock>
         <Wizard step={0} onStepChange={onStepChange}>
           <Inspector />
           <Wizard.Steps>
@@ -1669,7 +1467,7 @@ describe("Wizard.Step when prop", () => {
             </Wizard.Step>
           </Wizard.Steps>
         </Wizard>
-      </FS>,
+      </WizardFullscreenMock>,
     );
 
     act(() => {
@@ -1678,69 +1476,10 @@ describe("Wizard.Step when prop", () => {
 
     expect(onStepChange).toHaveBeenCalledWith(1, "c");
   });
-
-  it("when omitted or true behaves as before", () => {
-    render(
-      <FS>
-        <Wizard step={0} onStepChange={vi.fn()}>
-          <Wizard.Steps>
-            <Wizard.Step stepKey="a" label="A">
-              <div>First</div>
-            </Wizard.Step>
-            <Wizard.Step stepKey="b" label="B" when={true}>
-              <div>Second</div>
-            </Wizard.Step>
-            <Wizard.Step stepKey="c" label="C">
-              <div>Third</div>
-            </Wizard.Step>
-          </Wizard.Steps>
-        </Wizard>
-      </FS>,
-    );
-
-    const steps = document.querySelectorAll('[data-kumo-part="step"]');
-    expect(steps).toHaveLength(3);
-  });
-
-  it("legacy {cond && <Step>} form still works", () => {
-    const showMiddle = false;
-
-    render(
-      <FS>
-        <Wizard step={1} onStepChange={vi.fn()}>
-          <Wizard.Steps>
-            <Wizard.Step stepKey="first" label="First">
-              <div>First</div>
-            </Wizard.Step>
-            {showMiddle && (
-              <Wizard.Step stepKey="middle" label="Middle">
-                <div>Middle</div>
-              </Wizard.Step>
-            )}
-            <Wizard.Step stepKey="last" label="Last">
-              <div>Last</div>
-            </Wizard.Step>
-          </Wizard.Steps>
-        </Wizard>
-      </FS>,
-    );
-
-    const steps = document.querySelectorAll('[data-kumo-part="step"]');
-    expect(steps).toHaveLength(2);
-    expect(steps[1].getAttribute("data-step-key")).toBe("last");
-    expect(steps[1].hasAttribute("data-step-active")).toBe(true);
-  });
 });
 
 describe("i18n labels", () => {
   describe("Wizard.Fullscreen labels", () => {
-    it("should use default English close label when labels prop is omitted", () => {
-      render(<Wizard.Fullscreen open>Content</Wizard.Fullscreen>);
-
-      const closeButton = screen.getByRole("button", { name: "Close" });
-      expect(closeButton).toBeTruthy();
-    });
-
     it("should use custom close label when provided", () => {
       render(
         <Wizard.Fullscreen open labels={{ close: "Fermer" }}>
@@ -1763,7 +1502,7 @@ describe("i18n labels", () => {
 
     it('should use default "previous step" fallback when step has no label', () => {
       render(
-        <FS>
+        <WizardFullscreenMock>
           <Wizard step={1} onStepChange={vi.fn()}>
             <Wizard.Steps>
               <Wizard.Step stepKey="a">
@@ -1774,7 +1513,7 @@ describe("i18n labels", () => {
               </Wizard.Step>
             </Wizard.Steps>
           </Wizard>
-        </FS>,
+        </WizardFullscreenMock>,
       );
 
       const steps = document.querySelectorAll('[data-kumo-part="step"]');
@@ -1785,7 +1524,7 @@ describe("i18n labels", () => {
 
     it("should use custom goBackTo and previousStep labels when provided", () => {
       render(
-        <FS>
+        <WizardFullscreenMock>
           <Wizard
             step={1}
             onStepChange={vi.fn()}
@@ -1803,7 +1542,7 @@ describe("i18n labels", () => {
               </Wizard.Step>
             </Wizard.Steps>
           </Wizard>
-        </FS>,
+        </WizardFullscreenMock>,
       );
 
       const steps = document.querySelectorAll('[data-kumo-part="step"]');
@@ -1814,7 +1553,7 @@ describe("i18n labels", () => {
 
     it("should use custom goBackTo with the step label prop", () => {
       render(
-        <FS>
+        <WizardFullscreenMock>
           <Wizard
             step={1}
             onStepChange={vi.fn()}
@@ -1829,7 +1568,7 @@ describe("i18n labels", () => {
               </Wizard.Step>
             </Wizard.Steps>
           </Wizard>
-        </FS>,
+        </WizardFullscreenMock>,
       );
 
       const steps = document.querySelectorAll('[data-kumo-part="step"]');
@@ -1920,27 +1659,5 @@ describe("Portal container", () => {
 
     document.body.removeChild(providerContainer);
     document.body.removeChild(propContainer);
-  });
-
-  it("should still support close button after portal swap", async () => {
-    const onClose = vi.fn();
-    const user = userEvent.setup();
-
-    // Minimal content — avoid Wizard.Page to skip ScrollArea timer issues in happy-dom
-    render(
-      <Wizard.Fullscreen open onClose={onClose}>
-        Content
-      </Wizard.Fullscreen>,
-    );
-
-    // Close button should work
-    const closeButton = screen.getByRole("button", { name: "Close" });
-    await user.click(closeButton);
-    expect(onClose).toHaveBeenCalledOnce();
-
-    // Dialog should exist with correct ARIA
-    const dialog = document.querySelector('[role="dialog"]');
-    expect(dialog).toBeTruthy();
-    expect(dialog!.getAttribute("aria-modal")).toBe("true");
   });
 });

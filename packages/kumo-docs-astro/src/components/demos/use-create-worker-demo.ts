@@ -5,16 +5,25 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export type SelectedMethod = "hello-world" | "template" | "upload" | null;
 
+export type NameStatus = "idle" | "checking" | "available" | "error";
+
+function validateWorkerName(name: string): string | null {
+  if (!name.trim()) return "Enter a worker name.";
+  return null;
+}
+
 export function useCreateWorkerDemo() {
   const [stepKey, setStepKey] = useState("method");
   const [open, setOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] =
     useState<SelectedMethod>("template");
   const [selectedTemplate, setSelectedTemplateRaw] = useState("Astro");
-  const [workerName, setWorkerName] = useState("hello-world");
+  const [workerName, setWorkerNameRaw] = useState("hello-world");
+  const [nameStatus, setNameStatus] = useState<NameStatus>("available");
   const [nameError, setNameError] = useState("");
   const [isDeploying, setIsDeploying] = useState(false);
   const deployTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const availabilityTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   // Selecting a template also sets a derived worker name (e.g. "Astro" → "my-astro-app").
   // Sanitize to a valid slug: lowercase, non-alphanumeric → hyphen, collapse/trim hyphens.
@@ -24,7 +33,31 @@ export function useCreateWorkerDemo() {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
-    setWorkerName(`my-${slug}-app`);
+    const derived = `my-${slug}-app`;
+    setWorkerNameRaw(derived);
+    // Derived names are always valid — skip straight to available
+    setNameStatus("available");
+    setNameError("");
+  }, []);
+
+  // Debounced worker-name change: validate → check availability (simulated)
+  const setWorkerName = useCallback((next: string) => {
+    setWorkerNameRaw(next);
+    if (availabilityTimerRef.current)
+      clearTimeout(availabilityTimerRef.current);
+
+    const error = validateWorkerName(next);
+    if (error) {
+      setNameStatus("error");
+      setNameError(error);
+      return;
+    }
+
+    setNameError("");
+    setNameStatus("checking");
+    availabilityTimerRef.current = setTimeout(() => {
+      setNameStatus("available");
+    }, 500);
   }, []);
 
   const isTemplatePath = selectedMethod === "template";
@@ -38,20 +71,21 @@ export function useCreateWorkerDemo() {
     setOpen(false);
     setSelectedMethod("template");
     setSelectedTemplateRaw("Astro");
-    setWorkerName("hello-world");
+    setWorkerNameRaw("hello-world");
+    setNameStatus("available");
     setNameError("");
     setIsDeploying(false);
 
-    if (deployTimerRef.current) {
-      clearTimeout(deployTimerRef.current);
-    }
+    if (deployTimerRef.current) clearTimeout(deployTimerRef.current);
+    if (availabilityTimerRef.current)
+      clearTimeout(availabilityTimerRef.current);
   }, []);
 
   useEffect(() => {
     return () => {
-      if (deployTimerRef.current) {
-        clearTimeout(deployTimerRef.current);
-      }
+      if (deployTimerRef.current) clearTimeout(deployTimerRef.current);
+      if (availabilityTimerRef.current)
+        clearTimeout(availabilityTimerRef.current);
     };
   }, []);
 
@@ -70,20 +104,25 @@ export function useCreateWorkerDemo() {
     deployTimerRef.current = setTimeout(resetDemo, 3000);
   }
 
-  // Hello World deploy (non-template finale) — validates worker name first
+  // Hello World deploy — validates worker name first
   function handleDeploy() {
-    if (!workerName.trim()) {
-      setNameError("Worker name is required.");
-
+    const error = validateWorkerName(workerName);
+    if (error) {
+      setNameStatus("error");
+      setNameError(error);
       return;
     }
-
-    setNameError("");
     startDeployFinale();
   }
 
-  // Template deploy (setup step finale) — no validation, just triggers finale
+  // Template deploy — also validates worker name
   function handleTemplateDeploy() {
+    const error = validateWorkerName(workerName);
+    if (error) {
+      setNameStatus("error");
+      setNameError(error);
+      return;
+    }
     startDeployFinale();
   }
 
@@ -106,8 +145,8 @@ export function useCreateWorkerDemo() {
     setSelectedTemplate,
     workerName,
     setWorkerName,
+    nameStatus,
     nameError,
-    setNameError,
     isDeploying,
     handleDeploy,
     handleTemplateDeploy,
