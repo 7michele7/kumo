@@ -162,10 +162,10 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
           // Position card at the grid-line offset. origin-bottom makes
           // scale(0.85) pivot at the bottom edge so the previous-step peek
           // is consistent regardless of card height.
-          "absolute inset-x-0 top-(--wizard-content-top,180px) origin-bottom px-4 pb-8 outline-none @sm:px-6",
+          "absolute inset-x-0 top-(--wizard-content-top,180px) origin-bottom px-2 pb-8 outline-none sm:px-6",
           // Previous step: hover affordance + click overlay ring
           isPrevious &&
-            "hover:opacity-100 focus:opacity-100 cursor-pointer [&_button,[href]]:pointer-events-none after:pointer-events-none after:absolute after:inset-x-6 after:top-0 after:bottom-8 after:rounded-xl after:ring-1 after:ring-transparent after:transition-all focus-visible:after:ring-kumo-interact",
+            "hover:opacity-100 focus:opacity-100 cursor-pointer [&_button,[href]]:pointer-events-none after:pointer-events-none after:absolute after:inset-x-2 after:top-0 after:bottom-8 after:rounded-xl after:ring-1 after:ring-transparent after:transition-all sm:after:inset-x-6 focus-visible:after:ring-kumo-interact",
           // Future steps are non-interactive
           index > step && "pointer-events-none",
           // Prevent text selection on non-active steps (decorative peek)

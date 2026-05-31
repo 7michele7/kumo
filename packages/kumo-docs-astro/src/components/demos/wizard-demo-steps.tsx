@@ -58,7 +58,7 @@ export function SelectMethodBody({
 
   return (
     <div className="flex flex-col gap-2.5">
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         {gitMethods.map((method) => (
           <CreationMethodCard
             key={method.title}
@@ -136,7 +136,7 @@ export function SetupBody({
   nameError: string;
 }) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 sm:gap-6">
       <InputGroup
         label="Worker name"
         error={nameError ? { message: nameError, match: true } : undefined}
