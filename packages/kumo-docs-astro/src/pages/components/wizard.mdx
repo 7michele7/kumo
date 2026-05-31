@@ -1,7 +1,7 @@
 ---
 layout: ~/layouts/MdxDocLayout.astro
 title: "Wizard"
-description: "A multi-step wizard for guiding users through complex flows."
+description: "A fullscreen, multi-step flow for complex creation and onboarding tasks."
 sourceFile: "components/wizard"
 ---
 
@@ -97,6 +97,8 @@ The Wizard is a compound component. Compose only the pieces you need:
 <ComponentSection>
 
 ## Usage
+
+Compose the parts inside `Wizard.Fullscreen`. `useWizardGrid()` links `Wizard` and `Wizard.Grid` so the wireframe tracks the active step.
 
 ```tsx
 import { Button, Wizard, useWizard, useWizardGrid } from "@cloudflare/kumo";
@@ -328,7 +330,10 @@ const { gridProps, onActiveStepElementChange } = useWizardGrid();
         <td class="px-4 py-3 font-mono text-xs max-w-xs">
           <code class="text-wrap break-words">{`{ activeCardHeight: number; isTransitioning: boolean }`}</code>
         </td>
-        <td class="px-4 py-3 text-xs max-w-md">Spread onto `Wizard.Grid`.</td>
+        <td class="px-4 py-3 text-xs max-w-md">
+          The active card's height and transition state. Spread onto
+          `Wizard.Grid`.
+        </td>
       </tr>
       <tr class="border-b border-kumo-hairline">
         <td class="px-4 py-3 font-mono text-xs">onActiveStepElementChange</td>
@@ -336,7 +341,7 @@ const { gridProps, onActiveStepElementChange } = useWizardGrid();
           <code class="text-wrap break-words">{`(el: HTMLDivElement | null) => void`}</code>
         </td>
         <td class="px-4 py-3 text-xs max-w-md">
-          Callback for step element tracking.
+          Pass to `Wizard` so the grid can measure the active step.
         </td>
       </tr>
     </tbody>
@@ -354,7 +359,7 @@ const { gridProps, onActiveStepElementChange } = useWizardGrid();
 ### Wizard
 
 <p>
-  Root context provider and animation engine. Must be rendered inside a
+  Manages step state, navigation, and the card-stack animation. Render it inside
   `Wizard.Fullscreen`.
 </p>
 <PropsTable component="WizardRoot" />
@@ -378,17 +383,14 @@ const { gridProps, onActiveStepElementChange } = useWizardGrid();
 
 ### Wizard.Steps
 
-<p>
-  Container for wizard steps. Injects the `index` prop into each child
-  `Wizard.Step`.
-</p>
+<p>Wraps the steps. Drops any step with `when={false}` and indexes the rest.</p>
 <PropsTable component="WizardRoot.Steps" />
 
 ### Wizard.Step
 
 <p>
-  Individual step definition. Registers metadata with the Wizard context and
-  wraps children in a card-stack animation.
+  Defines a single step with a `stepKey` and `label`. Its children animate in
+  the card stack.
 </p>
 <PropsTable component="WizardRoot.Step" />
 
