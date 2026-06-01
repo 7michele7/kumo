@@ -225,6 +225,14 @@ export const SUB_COMPONENT_OVERRIDES: Record<string, SubComponentConfig[]> = {
   ],
   WizardRoot: [
     {
+      name: "CloseButton",
+      valueName: "WizardCloseButton",
+      propsType: "WizardCloseButtonProps",
+      description:
+        "Close button for Wizard.Fullscreen. Place inside header content for custom close placement.",
+      isPassThrough: false,
+    },
+    {
       name: "Fullscreen",
       valueName: "WizardFullscreen",
       propsType: "WizardFullscreenProps",
@@ -596,13 +604,25 @@ export const ADDITIONAL_COMPONENT_PROPS: Record<
     },
     showCloseButton: {
       type: "boolean",
-      description: "Whether to show the floating close button.",
+      description:
+        "Whether to show the floating close button (no-header mode only).",
       default: "true",
     },
     labels: {
       type: "WizardFullscreenLabels",
       description:
         "Labels for i18n of aria-labels. close: aria-label for the close button (default: Close).",
+    },
+    header: {
+      type: "ReactNode",
+      description:
+        "Optional header above wizard content. Use Wizard.CloseButton inside for close affordance. Height is measured for layout.",
+    },
+    width: {
+      type: '"narrow" | "wide"',
+      description:
+        "Card width preset. Applies with or without Wizard.Grid. narrow = 38rem, wide = 48rem.",
+      default: '"narrow"',
     },
   },
   "WizardRoot.Grid": {
@@ -630,12 +650,6 @@ export const ADDITIONAL_COMPONENT_PROPS: Record<
       type: "number",
       description: "Distance from viewport top to the grid.",
       default: "147",
-    },
-    width: {
-      type: '"narrow" | "wide"',
-      description:
-        "Max-width for the wireframe decoration and card content. narrow = 38rem, wide = 48rem.",
-      default: '"narrow"',
     },
   },
   "WizardRoot.Steps": {

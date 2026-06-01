@@ -9,6 +9,10 @@ Add `Wizard` — a fullscreen, multi-step flow built as a single composable comp
 - fullscreen overlay with scroll lock, esc to dismiss, and a close button
 - optional left-side title (via `Wizard.Grid` `title`) and right-side step indicator (`sidebar` prop, on by default)
 - optional decorative wireframe grid
+- `width` prop on `Wizard.Fullscreen` — controls the card max-width (`"narrow"` / `"wide"`), applies with or without `Wizard.Grid`
+- optional `header` on `Wizard.Fullscreen` — renders arbitrary top chrome; header height is measured and subtracted from layout
+- `Wizard.CloseButton` — exported close button component for custom header placement; uses Fullscreen context for `onClose`, labels, and focus-trap ref
+- `useWizard()` now exposes `close()` — programmatically closes the wizard by delegating to `Wizard.Fullscreen`'s `onClose`; no-op when `onClose` is absent
 - i18n-ready — the aria-labels are overridable via `labels` props
 
 ```tsx

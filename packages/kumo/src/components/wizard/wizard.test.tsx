@@ -2,7 +2,8 @@ import React from "react";
 import { render, screen, fireEvent, within, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import { Wizard, useWizard, WizardFullscreenContext, useWizardGrid } from ".";
+import { Wizard, useWizard, useWizardGrid } from ".";
+import { WizardFullscreenContext } from "./wizard-fullscreen";
 import { KumoPortalProvider } from "../../utils/portal-provider";
 
 // WizardFullscreenMock — provides WizardFullscreenContext without
@@ -13,7 +14,13 @@ const mockCloseRef = {
 } as React.RefObject<HTMLButtonElement | null>;
 function WizardFullscreenMock({ children }: { children: React.ReactNode }) {
   return (
-    <WizardFullscreenContext.Provider value={{ closeButtonRef: mockCloseRef }}>
+    <WizardFullscreenContext.Provider
+      value={{
+        closeButtonRef: mockCloseRef,
+        headerContentRef: null,
+        closeLabel: "Close",
+      }}
+    >
       {children}
     </WizardFullscreenContext.Provider>
   );
@@ -327,10 +334,58 @@ describe("Wizard.Grid", () => {
 
     expect(screen.getByText("Setup")).toBeTruthy();
   });
+});
 
-  it("should set --wizard-card-max-width to 38rem for narrow (default)", () => {
-    const { container } = render(
-      <WizardFullscreenMock>
+describe("Wizard.Fullscreen width prop", () => {
+  it("should set --wizard-card-max-width to 38rem by default", () => {
+    render(
+      <Wizard.Fullscreen open>
+        <Wizard step={0} onStepChange={vi.fn()}>
+          <Wizard.Steps>
+            <Wizard.Step stepKey="a">
+              <Wizard.Page title="T">C</Wizard.Page>
+            </Wizard.Step>
+          </Wizard.Steps>
+        </Wizard>
+      </Wizard.Fullscreen>,
+    );
+
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog.style.getPropertyValue("--wizard-card-max-width")).toBe(
+      "38rem",
+    );
+  });
+
+  it("should set --wizard-card-max-width to 48rem for wide (without Grid)", () => {
+    render(
+      <Wizard.Fullscreen open width="wide">
+        <Wizard step={0} onStepChange={vi.fn()}>
+          <Wizard.Steps>
+            <Wizard.Step stepKey="a">
+              <Wizard.Page title="T">C</Wizard.Page>
+            </Wizard.Step>
+          </Wizard.Steps>
+        </Wizard>
+      </Wizard.Fullscreen>,
+    );
+
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog.style.getPropertyValue("--wizard-card-max-width")).toBe(
+      "48rem",
+    );
+
+    // Wizard root does not set its own inline width variable
+    const wizardRoot = document.querySelector(
+      '[data-kumo-component="Wizard"]',
+    ) as HTMLElement;
+    expect(wizardRoot.style.getPropertyValue("--wizard-card-max-width")).toBe(
+      "",
+    );
+  });
+
+  it("should set --wizard-card-max-width to 48rem for wide (with Grid)", () => {
+    render(
+      <Wizard.Fullscreen open width="wide">
         <Wizard.Grid activeCardHeight={400} isTransitioning={false}>
           <Wizard step={0} onStepChange={vi.fn()}>
             <Wizard.Steps>
@@ -340,46 +395,124 @@ describe("Wizard.Grid", () => {
             </Wizard.Steps>
           </Wizard>
         </Wizard.Grid>
-      </WizardFullscreenMock>,
+      </Wizard.Fullscreen>,
     );
 
-    const wizardRoot = document.querySelector(
-      '[data-kumo-component="Wizard"]',
-    ) as HTMLElement;
-    expect(wizardRoot).toBeTruthy();
-    expect(wizardRoot.className).toContain(
-      "max-w-(--wizard-card-max-width,38rem)",
-    );
-
-    const gridRoot = container.firstElementChild as HTMLElement;
-    expect(gridRoot.style.getPropertyValue("--wizard-card-max-width")).toBe(
-      "38rem",
-    );
-  });
-
-  it("should set --wizard-card-max-width to 48rem for wide", () => {
-    const { container } = render(
-      <WizardFullscreenMock>
-        <Wizard.Grid
-          width="wide"
-          activeCardHeight={400}
-          isTransitioning={false}
-        >
-          <Wizard step={0} onStepChange={vi.fn()}>
-            <Wizard.Steps>
-              <Wizard.Step stepKey="a">
-                <Wizard.Page title="T">C</Wizard.Page>
-              </Wizard.Step>
-            </Wizard.Steps>
-          </Wizard>
-        </Wizard.Grid>
-      </WizardFullscreenMock>,
-    );
-
-    const gridRoot = container.firstElementChild as HTMLElement;
-    expect(gridRoot.style.getPropertyValue("--wizard-card-max-width")).toBe(
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog.style.getPropertyValue("--wizard-card-max-width")).toBe(
       "48rem",
     );
+
+    // Grid root does not override the variable
+    const gridRoot = dialog.querySelector(".bg-kumo-canvas") as HTMLElement;
+    expect(gridRoot).toBeTruthy();
+    expect(gridRoot.style.getPropertyValue("--wizard-card-max-width")).toBe("");
+  });
+});
+
+describe("sidebar without Wizard.Grid", () => {
+  it("should render the sidebar and have a @container/wizard ancestor", () => {
+    render(
+      <Wizard.Fullscreen open>
+        <Wizard step={0} onStepChange={vi.fn()}>
+          <Wizard.Steps>
+            <Wizard.Step stepKey="a" label="Step A">
+              <Wizard.Page title="T">C</Wizard.Page>
+            </Wizard.Step>
+          </Wizard.Steps>
+        </Wizard>
+      </Wizard.Fullscreen>,
+    );
+
+    const sidebar = document.querySelector('[data-kumo-part="sidebar"]');
+    expect(sidebar).toBeTruthy();
+
+    // The Fullscreen inner wrapper provides @container/wizard
+    const container = document.querySelector(
+      ".\\@container\\/wizard",
+    ) as HTMLElement;
+    expect(container).toBeTruthy();
+    expect(container.contains(sidebar)).toBe(true);
+  });
+});
+
+describe("Wizard.Fullscreen header prop", () => {
+  it("should render floating close button when no header", () => {
+    render(
+      <Wizard.Fullscreen open>
+        <div>Content</div>
+      </Wizard.Fullscreen>,
+    );
+
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog.querySelector("header")).toBeNull();
+
+    // Floating close button wrapper
+    const closeWrapper = dialog.querySelector(".absolute.end-4.top-4.z-10");
+    expect(closeWrapper).toBeTruthy();
+    expect(closeWrapper!.querySelector('[aria-label="Close"]')).toBeTruthy();
+
+    // --wizard-header-height defaults to 0px
+    expect(dialog.style.getPropertyValue("--wizard-header-height")).toBe("0px");
+  });
+
+  it("should not inject close button when header is provided", () => {
+    render(
+      <Wizard.Fullscreen open header={<div data-testid="hdr">My Header</div>}>
+        <div>Content</div>
+      </Wizard.Fullscreen>,
+    );
+
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+    const headerEl = dialog.querySelector("header");
+    expect(headerEl).toBeTruthy();
+    expect(screen.getByTestId("hdr")).toBeTruthy();
+
+    // No auto-injected close — header author controls placement
+    expect(dialog.querySelector(".absolute.end-4.top-4.z-10")).toBeNull();
+  });
+
+  it("should render Wizard.CloseButton inside header when consumer includes it", () => {
+    const onClose = vi.fn();
+    render(
+      <Wizard.Fullscreen
+        open
+        onClose={onClose}
+        header={
+          <div data-testid="custom-hdr">
+            <span>Title</span>
+            <Wizard.CloseButton />
+          </div>
+        }
+      >
+        <div>Content</div>
+      </Wizard.Fullscreen>,
+    );
+
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+    const headerEl = dialog.querySelector("header");
+    expect(headerEl).toBeTruthy();
+
+    const closeBtn = headerEl!.querySelector(
+      '[aria-label="Close"]',
+    ) as HTMLElement;
+    expect(closeBtn).toBeTruthy();
+
+    // Clicking close calls onClose
+    fireEvent.click(closeBtn);
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("should hide floating close when showCloseButton={false} and no header", () => {
+    render(
+      <Wizard.Fullscreen open showCloseButton={false}>
+        <div>Content</div>
+      </Wizard.Fullscreen>,
+    );
+
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog.querySelector('[aria-label="Close"]')).toBeNull();
+    expect(dialog.querySelector(".absolute.end-4.top-4.z-10")).toBeNull();
   });
 });
 
@@ -392,6 +525,36 @@ describe("useWizard", () => {
     expect(() => render(<Bad />)).toThrow(
       "useWizard must be used within a <Wizard> component",
     );
+  });
+
+  it("should call onClose when close() is invoked from useWizard", () => {
+    const onClose = vi.fn();
+
+    function CloseButton() {
+      const { close } = useWizard();
+      return (
+        <button type="button" onClick={close}>
+          Done
+        </button>
+      );
+    }
+
+    render(
+      <Wizard.Fullscreen open onClose={onClose}>
+        <Wizard>
+          <Wizard.Steps>
+            <Wizard.Step stepKey="only" label="Only">
+              <Wizard.Page title="Page">
+                <CloseButton />
+              </Wizard.Page>
+            </Wizard.Step>
+          </Wizard.Steps>
+        </Wizard>
+      </Wizard.Fullscreen>,
+    );
+
+    fireEvent.click(screen.getByText("Done"));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -613,8 +776,6 @@ describe("Wizard.Fullscreen aria-label", () => {
     expect(document.querySelector("h1")).toBeNull();
   });
 });
-
-// ─── Enhancement tests ───
 
 // Minimal wizard without Wizard.Page/ScrollMask to avoid @base-ui
 // ScrollArea timer issues in happy-dom (getAnimations not available)

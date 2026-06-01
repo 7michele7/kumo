@@ -6,13 +6,14 @@ import { ScrollMask } from "./scroll-mask";
 
 /**
  * Card height cap — three-tier formula:
- *  1. Normal viewports: 100vh - 400px (compact card with comfortable bottom margin).
+ *  1. Normal viewports: available height - 400px (compact card with comfortable bottom margin).
  *  2. Medium-short: holds at 320px floor so the card doesn't collapse.
- *  3. Very short: ceiling (100vh - content-top - 2rem) binds, filling available space.
+ *  3. Very short: ceiling (available - content-top - 2rem) binds, filling available space.
+ * Available height subtracts header via --wizard-header-height.
  * The outer min() guarantees the card never overflows past content-top + 2rem.
  */
 const DEFAULT_MAX_HEIGHT =
-  "min(calc(100vh - var(--wizard-content-top, 180px) - 2rem), max(calc(100vh - 400px), 320px))";
+  "min(calc(100vh - var(--wizard-header-height, 0px) - var(--wizard-content-top, 180px) - 2rem), max(calc(100vh - var(--wizard-header-height, 0px) - 400px), 320px))";
 
 export interface WizardPageProps {
   /** Card body content. */
@@ -25,7 +26,7 @@ export interface WizardPageProps {
   footer?: ReactNode;
   /**
    * Raw CSS value for the card's max-height (e.g. `"calc(100vh - 16rem)"`).
-   * @default "min(calc(100vh - var(--wizard-content-top, 180px) - 2rem), max(calc(100vh - 400px), 320px))"
+   * @default Adaptive formula subtracting --wizard-header-height and --wizard-content-top
    */
   maxHeight?: string;
   /** Card heading text. */

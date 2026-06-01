@@ -88,7 +88,7 @@ export function CreationMethodCard({
   );
 }
 
-// ── Template cards — matching dash TemplateLinkThumb layout ──
+// Template cards matching dash TemplateLinkThumb layout
 
 export interface DemoTemplate {
   name: string;

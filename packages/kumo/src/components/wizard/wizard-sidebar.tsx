@@ -9,7 +9,7 @@ export interface WizardSidebarProps {
 /**
  * Right-side step indicator showing step labels with dot indicators.
  * Reads step info from `WizardContext`. Hidden when the `wizard`
- * container (Wizard.Grid) is narrower than `@5xl` (64rem).
+ * container is narrower than `@5xl` (64rem). Does not require `Wizard.Grid`.
  *
  * Steps with `hideFromSidebar: true` are excluded from the list.
  * Completed steps are clickable (navigates back) unless `lockTabMenu` is true.

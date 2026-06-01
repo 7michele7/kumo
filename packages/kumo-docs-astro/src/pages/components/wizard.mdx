@@ -10,7 +10,7 @@ import ComponentSection from "~/components/docs/ComponentSection.astro";
 import CodeBlock from "~/components/docs/CodeBlock.astro";
 import PropsTable from "~/components/docs/PropsTable.astro";
 import Anatomy from "~/components/docs/Anatomy.astro";
-import { WizardFullDemo } from "~/components/demos/WizardDemo";
+import { WizardFullDemo } from "~/components/demos/Wizard/WizardDemo";
 
 {/* Hero Demo */}
 
@@ -158,7 +158,7 @@ function Footer() {
 </p>
 
 <CodeBlock
-  code={`const { step, stepKey, goToStep, next, back, isLastStep, isFirstStep } = useWizard();`}
+  code={`const { step, stepKey, goToStep, next, back, close, isLastStep, isFirstStep } = useWizard();`}
   lang="tsx"
 />
 
@@ -179,6 +179,16 @@ function Footer() {
         </td>
         <td class="px-4 py-3 text-xs max-w-md">
           Go back to the previous step. No-op on the first step.
+        </td>
+      </tr>
+      <tr class="border-b border-kumo-hairline">
+        <td class="px-4 py-3 font-mono text-xs">close</td>
+        <td class="px-4 py-3 font-mono text-xs max-w-xs">
+          <code class="text-wrap break-words">() =&gt; void</code>
+        </td>
+        <td class="px-4 py-3 text-xs max-w-md">
+          Programmatically close the wizard. Calls `Wizard.Fullscreen`'s
+          `onClose`. No-op if no `onClose` is set.
         </td>
       </tr>
       <tr class="border-b border-kumo-hairline">
@@ -368,7 +378,10 @@ const { gridProps, onActiveStepElementChange } = useWizardGrid();
 
 <p>
   Fullscreen modal container with a floating close button, Escape-to-close,
-  scroll lock, and `role="dialog"`. Content fills the entire viewport.
+  scroll lock, and `role="dialog"`. Content fills the entire viewport. The
+  `width` prop controls the card's max-width. Pass `header` to render arbitrary
+  top chrome — include `Wizard.CloseButton` inside the header where you want the
+  close affordance. Header height is measured for layout.
 </p>
 <PropsTable component="WizardRoot.Fullscreen" />
 

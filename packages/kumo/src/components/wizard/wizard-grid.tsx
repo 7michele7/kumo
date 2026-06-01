@@ -24,16 +24,6 @@ const ANIMATION_EASING = [0.3, 1, 0.35, 1] as const;
 const crossClasses =
   "absolute size-[7px] rounded-[1.5px] bg-kumo-elevated ring-1 ring-kumo-interact";
 
-export type WizardGridWidth = "narrow" | "wide";
-
-// Single source of truth for wizard widths. Sets the --wizard-card-max-width
-// CSS var on the Grid root; both the wireframe decoration and the Wizard card
-// consume var(--wizard-card-max-width, 38rem) so they're guaranteed to match.
-const widthValueMap: Record<WizardGridWidth, string> = {
-  narrow: "38rem",
-  wide: "48rem",
-};
-
 const CARD_MAX_WIDTH_CLASS = "max-w-[var(--wizard-card-max-width,38rem)]";
 
 export interface WizardGridProps {
@@ -47,7 +37,6 @@ export interface WizardGridProps {
   title?: string;
   /** Distance from viewport top to the grid. @default 147 */
   topOffset?: number;
-  width?: WizardGridWidth;
 }
 
 interface WizardGridInternalProps {
@@ -57,7 +46,6 @@ interface WizardGridInternalProps {
   activeCardHeight: number;
   isTransitioning: boolean;
   shouldReduceMotion: boolean;
-  width: WizardGridWidth;
   topOffset: number;
 }
 
@@ -69,7 +57,6 @@ function WizardGridAnimated({
   shouldReduceMotion,
   title,
   topOffset,
-  width,
 }: WizardGridInternalProps) {
   // Rebased to the adaptive container (topOffset removed — container owns the base offset)
   const bottomCrossTop = useMemo(
@@ -97,21 +84,15 @@ function WizardGridAnimated({
       )}
       style={
         {
-          minHeight: `calc(100vh - ${topOffset}px)`,
+          minHeight: `calc(100vh - var(--wizard-header-height, 0px) - ${topOffset}px)`,
           // Adaptive content-top: at normal/tall viewports this equals the
           // fixed topOffset + 33. On short viewports it shrinks toward 56px
           // so the card reclaims the reserved top space instead of collapsing.
-          // Threshold: kicks in below ~vh where (100vh - 280px) < normal.
-          "--wizard-content-top": `max(56px, min(${topOffset + CONTENT_OFFSET}px, calc(100vh - 280px)))`,
-          "--wizard-card-max-width": widthValueMap[width],
+          "--wizard-content-top": `max(56px, min(${topOffset + CONTENT_OFFSET}px, calc(100vh - var(--wizard-header-height, 0px) - 280px)))`,
         } as CSSProperties
       }
     >
-      {/* Full-height vertical dashed lines — rendered outside the adaptive
-          container so they extend from the top of the grid root downward,
-          including the region above the top horizontal wireframe line.
-          Uses the same centering (left-1/2 w-full -translate-x-1/2) as
-          the crosses container so both share one horizontal anchor. */}
+      {/* Full-height vertical dashed lines */}
       <div
         className={cn(
           "pointer-events-none absolute inset-y-0 left-1/2 w-full -translate-x-1/2",
@@ -121,16 +102,13 @@ function WizardGridAnimated({
         <div className="absolute left-[-6px] h-full w-[calc(100%+12px)] border-x border-y-0 border-dashed border-kumo-hairline" />
       </div>
 
-      {/* Adaptive positioning container — tracks --wizard-content-top so the
-          wireframe and title move with the card on short viewports. On normal
-          viewports (content-top = topOffset+33) the base equals topOffset. */}
+      {/* Adaptive positioning container for title + wireframe */}
       <div
         className="pointer-events-none absolute inset-x-0"
         style={{
           top: `calc(var(--wizard-content-top, ${topOffset + CONTENT_OFFSET}px) - ${CONTENT_OFFSET}px)`,
         }}
       >
-        {/* Title positioned to the left of the grid */}
         {title && (
           <div
             className={cn(
@@ -147,20 +125,18 @@ function WizardGridAnimated({
           </div>
         )}
 
-        {/* Wireframe grid decoration (crosses + horizontal lines) */}
+        {/* Crosses + horizontal lines */}
         <div
           className={cn(
             "absolute left-1/2 flex h-[calc(100vh+1000px)] w-full -translate-x-1/2 items-center justify-center",
             CARD_MAX_WIDTH_CLASS,
           )}
         >
-          {/* Top crosses */}
           <div className="absolute inset-x-[-9px] top-0 z-10">
             <div className={cn(crossClasses, "left-0")} />
             <div className={cn(crossClasses, "right-0 rotate-90")} />
           </div>
 
-          {/* Bottom crosses — animate with card height */}
           <motion.div
             animate={{ top: bottomCrossTop }}
             className="absolute inset-x-[-9px] z-10"
@@ -171,13 +147,11 @@ function WizardGridAnimated({
             <div className={cn(crossClasses, "right-0 rotate-180")} />
           </motion.div>
 
-          {/* Top horizontal border — fixed position */}
           <div
             className="absolute left-1/2 w-screen -translate-x-1/2 border-x-0 border-t border-b-0 border-dashed border-kumo-hairline"
             style={{ top: CONTENT_OFFSET - BORDER_Y_OFFSET }}
           />
 
-          {/* Bottom horizontal border — animated position */}
           <motion.div
             animate={{
               top: `${
@@ -224,7 +198,6 @@ export function WizardGrid({
   isTransitioning,
   title,
   topOffset = DEFAULT_TOP_OFFSET,
-  width = "narrow",
 }: WizardGridProps) {
   const shouldReduceMotion = useReducedMotion();
 
@@ -236,7 +209,6 @@ export function WizardGrid({
       shouldReduceMotion={shouldReduceMotion ?? false}
       title={title}
       topOffset={topOffset}
-      width={width}
     >
       {children}
     </WizardGridAnimated>

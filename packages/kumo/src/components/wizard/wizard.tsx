@@ -88,6 +88,8 @@ export interface WizardContextValue {
   isFirstStep: boolean;
   /** Triggers `onComplete` when on the last step. */
   complete: () => void;
+  /** Programmatically close the wizard (calls `Wizard.Fullscreen`'s `onClose`). No-op if no `onClose` is set. */
+  close: () => void;
   // Resolved i18n labels for step accessible names.
   labels: { goBackTo: (stepLabel: string) => string; previousStep: string };
 }
@@ -100,6 +102,7 @@ const WizardContext = createContext<WizardContextValue | null>(null);
 export type UseWizardReturn = Pick<
   WizardContextValue,
   | "back"
+  | "close"
   | "complete"
   | "goToStep"
   | "isChangingStep"
@@ -119,7 +122,7 @@ export type UseWizardReturn = Pick<
  *
  * @example
  * ```tsx
- * const { step, stepKey, goToStep, next, back, isLastStep, complete } = useWizard();
+ * const { step, stepKey, goToStep, next, back, close, isLastStep, complete } = useWizard();
  * ```
  *
  * @throws Error if used outside a `Wizard`.
@@ -278,7 +281,7 @@ function WizardRoot({
   step: stepProp,
 }: WizardProps) {
   // Require Wizard.Fullscreen ancestor
-  const { closeButtonRef } = useWizardFullscreen();
+  const { closeButtonRef, headerContentRef, onClose } = useWizardFullscreen();
   if (process.env.NODE_ENV !== "production" && closeButtonRef === null) {
     throw new Error(
       "Wizard must be rendered inside <Wizard.Fullscreen>. " +
@@ -389,6 +392,11 @@ function WizardRoot({
     onComplete?.();
   }, [onComplete]);
 
+  // Close handler — delegates to Wizard.Fullscreen's onClose
+  const close = useCallback(() => {
+    onClose?.();
+  }, [onClose]);
+
   // Sync the current step ref when the DOM updates
   useIsomorphicLayoutEffect(() => {
     const currentStepElement = stepElementsRef.current.get(step) || null;
@@ -463,7 +471,20 @@ function WizardRoot({
         allowedElements.push(previousStepElement);
       }
 
-      if (closeButtonRef?.current) {
+      // Include focusable header elements (e.g. theme toggle, close button)
+      if (headerContentRef?.current) {
+        const headerFocusable =
+          headerContentRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]):not([tabindex="-1"]), [href]:not([tabindex="-1"]), input:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])',
+          );
+        allowedElements.push(...Array.from(headerFocusable));
+      }
+
+      // Add close button only if not already included via header focusables
+      if (
+        closeButtonRef?.current &&
+        !allowedElements.includes(closeButtonRef.current)
+      ) {
         allowedElements.push(closeButtonRef.current);
       }
 
@@ -502,12 +523,13 @@ function WizardRoot({
 
     dialogContainer.addEventListener("keydown", handleKeyDown);
     return () => dialogContainer.removeEventListener("keydown", handleKeyDown);
-  }, [step, activeStepFocusable, closeButtonRef]);
+  }, [step, activeStepFocusable, closeButtonRef, headerContentRef]);
 
   const contextValue = useMemo<WizardContextValue>(
     () => ({
       activeStepFocusable,
       back,
+      close,
       complete,
       currentStepRef,
       goToStep,
@@ -533,6 +555,7 @@ function WizardRoot({
     [
       activeStepFocusable,
       back,
+      close,
       complete,
       goToStep,
       handleStepChange,
@@ -557,7 +580,7 @@ function WizardRoot({
     <WizardContext.Provider value={contextValue}>
       <div
         className={cn(
-          "@container relative isolate mx-auto w-full min-h-screen max-w-(--wizard-card-max-width,38rem)",
+          "@container relative isolate mx-auto w-full min-h-[calc(100vh-var(--wizard-header-height,0px))] max-w-(--wizard-card-max-width,38rem)",
           className,
         )}
         data-kumo-component="Wizard"

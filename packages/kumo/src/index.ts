@@ -313,8 +313,7 @@ export {
   WizardSteps,
   WizardPage,
   WizardFullscreen,
-  WizardFullscreenContext,
-  useWizardFullscreen,
+  WizardCloseButton,
   WizardGrid,
   useWizard,
   useWizardGrid,
@@ -328,9 +327,9 @@ export {
   type WizardStepsProps,
   type WizardPageProps,
   type WizardFullscreenProps,
-  type WizardFullscreenContextValue,
+  type WizardCloseButtonProps,
   type WizardGridProps,
-  type WizardGridWidth,
+  type WizardWidth,
   type UseWizardGridReturn,
 } from "./components/wizard";
 // PLOP_INJECT_EXPORT

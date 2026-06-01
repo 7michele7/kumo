@@ -1,17 +1,12 @@
-// Demo-only state plumbing for the Create Worker wizard example.
-// Separated from WizardDemo.tsx so the docs code block stays focused on Wizard API usage.
-
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { WizardWidth } from "@cloudflare/kumo";
 
 export type SelectedMethod = "hello-world" | "template" | "upload" | null;
 
 export type NameStatus = "idle" | "checking" | "available" | "error";
 
-function validateWorkerName(name: string): string | null {
-  if (!name.trim()) return "Enter a worker name.";
-  return null;
-}
-
+// Demo-only state plumbing for the Create Worker wizard example.
+// Separated from WizardDemo.tsx so the docs code block stays focused on Wizard API usage.
 export function useCreateWorkerDemo() {
   const [stepKey, setStepKey] = useState("method");
   const [open, setOpen] = useState(false);
@@ -46,10 +41,9 @@ export function useCreateWorkerDemo() {
     if (availabilityTimerRef.current)
       clearTimeout(availabilityTimerRef.current);
 
-    const error = validateWorkerName(next);
-    if (error) {
+    if (!next.trim()) {
       setNameStatus("error");
-      setNameError(error);
+      setNameError("Enter a worker name.");
       return;
     }
 
@@ -106,10 +100,9 @@ export function useCreateWorkerDemo() {
 
   // Hello World deploy — validates worker name first
   function handleDeploy() {
-    const error = validateWorkerName(workerName);
-    if (error) {
+    if (!workerName.trim()) {
       setNameStatus("error");
-      setNameError(error);
+      setNameError("Enter a worker name.");
       return;
     }
     startDeployFinale();
@@ -117,10 +110,9 @@ export function useCreateWorkerDemo() {
 
   // Template deploy — also validates worker name
   function handleTemplateDeploy() {
-    const error = validateWorkerName(workerName);
-    if (error) {
+    if (!workerName.trim()) {
       setNameStatus("error");
-      setNameError(error);
+      setNameError("Enter a worker name.");
       return;
     }
     startDeployFinale();
@@ -128,6 +120,12 @@ export function useCreateWorkerDemo() {
 
   // Wizard onStepChange handler — only uses the key, ignores the index
   const handleStepChange = (_index: number, key: string) => setStepKey(key);
+
+  // Playground controls
+  const [pgWidth, setPgWidth] = useState<WizardWidth>("narrow");
+  const [pgSidebar, setPgSidebar] = useState(true);
+  const [pgWireframe, setPgWireframe] = useState(true);
+  const [pgHeader, setPgHeader] = useState(true);
 
   return {
     stepKey,
@@ -151,5 +149,15 @@ export function useCreateWorkerDemo() {
     handleDeploy,
     handleTemplateDeploy,
     resetDemo,
+    playground: {
+      width: pgWidth,
+      setWidth: setPgWidth,
+      sidebar: pgSidebar,
+      setSidebar: setPgSidebar,
+      wireframe: pgWireframe,
+      setWireframe: setPgWireframe,
+      header: pgHeader,
+      setHeader: setPgHeader,
+    },
   };
 }
