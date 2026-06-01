@@ -14,29 +14,33 @@ import {
   UploadStepBody,
   UploadStepFooter,
 } from "./wizard-demo-steps";
-import { WizardPlayground } from "./wizard-playground";
+import { WizardDemoPlayground } from "./wizard-playground";
 import { WizardDemoHeader } from "./wizard-demo-header";
 
-export function WizardFullDemo() {
-  const { gridProps, onActiveStepElementChange } = useWizardGrid();
-
-  const demo = useCreateWorkerDemo(); // Demo-only state plumbing, not part of the Wizard API.
-
-  const renderWizardTree = (
+function WizardDemoFlow({
+  demo,
+  onActiveStepElementChange,
+  sidebar,
+}: {
+  demo: ReturnType<typeof useCreateWorkerDemo>;
+  onActiveStepElementChange: (element: HTMLDivElement | null) => void;
+  sidebar: boolean;
+}) {
+  return (
     <Wizard
       step={demo.stepKey}
       onStepChange={demo.handleStepChange}
       onActiveStepElementChange={onActiveStepElementChange}
-      lockTabMenu={demo.isDeploying}
-      sidebar={demo.playground.sidebar}
+      previousStepNavigation={demo.isDeploying ? "disabled" : "enabled"}
     >
+      {sidebar && <Wizard.Sidebar />}
       <Wizard.Steps>
         <Wizard.Step stepKey="method" label="Select a method">
           <Wizard.Page
             title="Ship something new"
             description="Select from a Git repo, drag and drop your code or select a template."
           >
-            <SelectMethodBody onSelectMethod={demo.setSelectedMethod} />
+            <SelectMethodBody onSelectMethod={demo.handleSelectMethod} />
           </Wizard.Page>
         </Wizard.Step>
         <Wizard.Step
@@ -79,7 +83,7 @@ export function WizardFullDemo() {
         <Wizard.Step
           stepKey="deploy"
           label="Deploy Worker"
-          when={!demo.isTemplatePath && !demo.isUploadPath}
+          when={demo.isDeployPath}
         >
           <div className="relative">
             <Wizard.Page
@@ -130,6 +134,68 @@ export function WizardFullDemo() {
       </Wizard.Steps>
     </Wizard>
   );
+}
+
+export function WizardFullDemo() {
+  const { gridProps, onActiveStepElementChange } = useWizardGrid();
+  // Demo-only state plumbing, not part of the Wizard API.
+  const demo = useCreateWorkerDemo();
+
+  return (
+    <>
+      <Button onClick={demo.handleOpen}>Open Wizard</Button>
+      <Wizard.Fullscreen
+        open={demo.open}
+        onClose={demo.handleClose}
+        className="relative"
+        header={<WizardDemoHeader />}
+      >
+        <Wizard.Grid {...gridProps} title="Create a Worker">
+          <Wizard
+            step={demo.stepKey}
+            onStepChange={demo.handleStepChange}
+            onActiveStepElementChange={onActiveStepElementChange}
+            previousStepNavigation={demo.isDeploying ? "disabled" : "enabled"}
+          >
+            <Wizard.Sidebar />
+            <Wizard.Steps>
+              <Wizard.Step stepKey="method" label="Select a method">
+                <Wizard.Page
+                  title="Ship something new"
+                  description="Choose how you want to start."
+                >
+                  <>{/* ... */}</>
+                </Wizard.Page>
+              </Wizard.Step>
+              <Wizard.Step stepKey="configure" label="Configure">
+                <Wizard.Page
+                  title="Configure your Worker"
+                  description="Set the project name, build command, and deploy command."
+                >
+                  <>{/* ... */}</>
+                </Wizard.Page>
+              </Wizard.Step>
+            </Wizard.Steps>
+          </Wizard>
+        </Wizard.Grid>
+      </Wizard.Fullscreen>
+    </>
+  );
+}
+
+export function WizardInteractivePreview() {
+  const { gridProps, onActiveStepElementChange } = useWizardGrid();
+
+  // Demo-only state plumbing, not part of the Wizard API.
+  const demo = useCreateWorkerDemo();
+
+  const renderWizardTree = (
+    <WizardDemoFlow
+      demo={demo}
+      onActiveStepElementChange={onActiveStepElementChange}
+      sidebar={demo.playground.sidebar}
+    />
+  );
 
   return (
     <>
@@ -148,7 +214,7 @@ export function WizardFullDemo() {
         ) : (
           renderWizardTree
         )}
-        <WizardPlayground
+        <WizardDemoPlayground
           width={demo.playground.width}
           onWidthChange={demo.playground.setWidth}
           sidebar={demo.playground.sidebar}
@@ -157,6 +223,8 @@ export function WizardFullDemo() {
           onWireframeChange={demo.playground.setWireframe}
           header={demo.playground.header}
           onHeaderChange={demo.playground.setHeader}
+          controlsOpen={demo.playground.controlsOpen}
+          onControlsOpenChange={demo.playground.setControlsOpen}
         />
       </Wizard.Fullscreen>
     </>

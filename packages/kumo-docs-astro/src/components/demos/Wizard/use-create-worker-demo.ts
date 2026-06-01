@@ -5,13 +5,20 @@ export type SelectedMethod = "hello-world" | "template" | "upload" | null;
 
 export type NameStatus = "idle" | "checking" | "available" | "error";
 
+interface PlaygroundState {
+  width: WizardWidth;
+  sidebar: boolean;
+  wireframe: boolean;
+  header: boolean;
+  controlsOpen: boolean;
+}
+
 // Demo-only state plumbing for the Create Worker wizard example.
 // Separated from WizardDemo.tsx so the docs code block stays focused on Wizard API usage.
 export function useCreateWorkerDemo() {
   const [stepKey, setStepKey] = useState("method");
   const [open, setOpen] = useState(false);
-  const [selectedMethod, setSelectedMethod] =
-    useState<SelectedMethod>("template");
+  const [selectedMethod, setSelectedMethod] = useState<SelectedMethod>(null);
   const [selectedTemplate, setSelectedTemplateRaw] = useState("Astro");
   const [workerName, setWorkerNameRaw] = useState("hello-world");
   const [nameStatus, setNameStatus] = useState<NameStatus>("available");
@@ -19,6 +26,18 @@ export function useCreateWorkerDemo() {
   const [isDeploying, setIsDeploying] = useState(false);
   const deployTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
   const availabilityTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const methodNavigationFrameRef = useRef<number | null>(null);
+
+  function scheduleStepChange(nextStep: string) {
+    if (methodNavigationFrameRef.current !== null) {
+      cancelAnimationFrame(methodNavigationFrameRef.current);
+    }
+
+    methodNavigationFrameRef.current = requestAnimationFrame(() => {
+      setStepKey(nextStep);
+      methodNavigationFrameRef.current = null;
+    });
+  }
 
   // Selecting a template also sets a derived worker name (e.g. "Astro" → "my-astro-app").
   // Sanitize to a valid slug: lowercase, non-alphanumeric → hyphen, collapse/trim hyphens.
@@ -54,8 +73,20 @@ export function useCreateWorkerDemo() {
     }, 500);
   }, []);
 
+  const handleSelectMethod = useCallback((method: SelectedMethod) => {
+    setSelectedMethod(method);
+    const nextStep =
+      method === "template"
+        ? "template"
+        : method === "upload"
+          ? "upload"
+          : "deploy";
+    scheduleStepChange(nextStep);
+  }, []);
+
   const isTemplatePath = selectedMethod === "template";
   const isUploadPath = selectedMethod === "upload";
+  const isDeployPath = selectedMethod === "hello-world";
 
   // The deploy overlay shows the worker name for all paths
   const deployProjectName = workerName || "Hello World";
@@ -63,7 +94,7 @@ export function useCreateWorkerDemo() {
   const resetDemo = useCallback(() => {
     setStepKey("method");
     setOpen(false);
-    setSelectedMethod("template");
+    setSelectedMethod(null);
     setSelectedTemplateRaw("Astro");
     setWorkerNameRaw("hello-world");
     setNameStatus("available");
@@ -73,6 +104,10 @@ export function useCreateWorkerDemo() {
     if (deployTimerRef.current) clearTimeout(deployTimerRef.current);
     if (availabilityTimerRef.current)
       clearTimeout(availabilityTimerRef.current);
+    if (methodNavigationFrameRef.current !== null) {
+      cancelAnimationFrame(methodNavigationFrameRef.current);
+      methodNavigationFrameRef.current = null;
+    }
   }, []);
 
   useEffect(() => {
@@ -80,6 +115,9 @@ export function useCreateWorkerDemo() {
       if (deployTimerRef.current) clearTimeout(deployTimerRef.current);
       if (availabilityTimerRef.current)
         clearTimeout(availabilityTimerRef.current);
+      if (methodNavigationFrameRef.current !== null) {
+        cancelAnimationFrame(methodNavigationFrameRef.current);
+      }
     };
   }, []);
 
@@ -122,10 +160,33 @@ export function useCreateWorkerDemo() {
   const handleStepChange = (_index: number, key: string) => setStepKey(key);
 
   // Playground controls
-  const [pgWidth, setPgWidth] = useState<WizardWidth>("narrow");
-  const [pgSidebar, setPgSidebar] = useState(true);
-  const [pgWireframe, setPgWireframe] = useState(true);
-  const [pgHeader, setPgHeader] = useState(true);
+  const [playgroundState, setPlaygroundState] = useState<PlaygroundState>({
+    width: "narrow",
+    sidebar: true,
+    wireframe: true,
+    header: true,
+    controlsOpen: true,
+  });
+
+  const setPlaygroundWidth = useCallback((width: WizardWidth) => {
+    setPlaygroundState((state) => ({ ...state, width }));
+  }, []);
+
+  const setPlaygroundSidebar = useCallback((sidebar: boolean) => {
+    setPlaygroundState((state) => ({ ...state, sidebar }));
+  }, []);
+
+  const setPlaygroundWireframe = useCallback((wireframe: boolean) => {
+    setPlaygroundState((state) => ({ ...state, wireframe }));
+  }, []);
+
+  const setPlaygroundHeader = useCallback((header: boolean) => {
+    setPlaygroundState((state) => ({ ...state, header }));
+  }, []);
+
+  const setPlaygroundControlsOpen = useCallback((controlsOpen: boolean) => {
+    setPlaygroundState((state) => ({ ...state, controlsOpen }));
+  }, []);
 
   return {
     stepKey,
@@ -135,9 +196,10 @@ export function useCreateWorkerDemo() {
     handleOpen,
     handleClose,
     selectedMethod,
-    setSelectedMethod,
+    handleSelectMethod,
     isTemplatePath,
     isUploadPath,
+    isDeployPath,
     deployProjectName,
     selectedTemplate,
     setSelectedTemplate,
@@ -150,14 +212,16 @@ export function useCreateWorkerDemo() {
     handleTemplateDeploy,
     resetDemo,
     playground: {
-      width: pgWidth,
-      setWidth: setPgWidth,
-      sidebar: pgSidebar,
-      setSidebar: setPgSidebar,
-      wireframe: pgWireframe,
-      setWireframe: setPgWireframe,
-      header: pgHeader,
-      setHeader: setPgHeader,
+      width: playgroundState.width,
+      setWidth: setPlaygroundWidth,
+      sidebar: playgroundState.sidebar,
+      setSidebar: setPlaygroundSidebar,
+      wireframe: playgroundState.wireframe,
+      setWireframe: setPlaygroundWireframe,
+      header: playgroundState.header,
+      setHeader: setPlaygroundHeader,
+      controlsOpen: playgroundState.controlsOpen,
+      setControlsOpen: setPlaygroundControlsOpen,
     },
   };
 }

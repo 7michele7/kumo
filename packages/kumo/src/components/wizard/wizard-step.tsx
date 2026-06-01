@@ -90,7 +90,7 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
     const {
       step,
       onStepChange,
-      lockTabMenu,
+      previousStepNavigation,
       registerStep,
       unregisterStep,
       shouldReduceMotion,
@@ -107,9 +107,9 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
 
     // Register/unregister step metadata with the wizard context
     useEffect(() => {
-      registerStep({ key: stepKey, label, hideFromSidebar });
+      registerStep({ key: stepKey, label, hideFromSidebar, order: index });
       return () => unregisterStep(stepKey);
-    }, [stepKey, label, hideFromSidebar, registerStep, unregisterStep]);
+    }, [stepKey, label, hideFromSidebar, index, registerStep, unregisterStep]);
 
     const stepVariants = stepVariantsConfig;
 
@@ -147,6 +147,8 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
 
     const isActive = index === step;
     const isPrevious = index === step - 1;
+    const isPreviousStepNavigationEnabled =
+      previousStepNavigation === "enabled";
 
     const stepContextValue = useMemo(() => ({ isActive }), [isActive]);
 
@@ -156,16 +158,19 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
         // Hide non-current/non-previous steps from screen readers (WCAG 2.1 SC 1.3.1, 4.1.2)
         aria-hidden={!isActive && !isPrevious}
         aria-label={
-          isPrevious ? labels.goBackTo(label || labels.previousStep) : undefined
+          isPrevious && isPreviousStepNavigationEnabled
+            ? labels.goBackTo(label || labels.previousStep)
+            : undefined
         }
         className={cn(
           // Position card at the grid-line offset. origin-bottom makes
           // scale(0.85) pivot at the bottom edge so the previous-step peek
           // is consistent regardless of card height.
           "absolute inset-x-0 top-(--wizard-content-top,180px) origin-bottom px-2 pb-8 outline-none sm:px-6",
-          // Previous step: hover affordance + click overlay ring
+          // Previous step with navigation enabled: go-back affordance on the wrapper
           isPrevious &&
-            "hover:opacity-100 focus:opacity-100 cursor-pointer [&_button,[href]]:pointer-events-none after:pointer-events-none after:absolute after:inset-x-2 after:top-0 after:bottom-8 after:rounded-xl after:ring-1 after:ring-transparent after:transition-all sm:after:inset-x-6 focus-visible:after:ring-kumo-interact",
+            isPreviousStepNavigationEnabled &&
+            "hover:opacity-100 focus:opacity-100 cursor-pointer after:pointer-events-none after:absolute after:inset-x-2 after:top-0 after:bottom-8 after:rounded-xl after:ring-1 after:ring-transparent after:transition-all sm:after:inset-x-6 focus-visible:after:ring-kumo-interact",
           // Future steps are non-interactive
           index > step && "pointer-events-none",
           // Prevent text selection on non-active steps (decorative peek)
@@ -179,7 +184,7 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
         initial={false}
         onAnimationComplete={handleAnimationComplete}
         onClick={() => {
-          if (lockTabMenu) return;
+          if (!isPreviousStepNavigationEnabled) return;
           // Only the immediately-previous step is an interactive go-back target
           if (isPrevious) {
             onStepChange(index);
@@ -188,16 +193,24 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
         onKeyDown={(e) => {
           if (isPrevious && (e.key === "Enter" || e.key === " ")) {
             e.preventDefault();
-            if (!lockTabMenu) {
+            if (isPreviousStepNavigationEnabled) {
               onStepChange(index);
             }
           }
         }}
         ref={stepRefCallback}
-        role={isPrevious ? "button" : undefined}
+        role={
+          isPrevious && isPreviousStepNavigationEnabled ? "button" : undefined
+        }
         // Tab order: only active and previous steps are focusable
         tabIndex={
-          isActive ? (activeStepFocusable ? 0 : -1) : isPrevious ? 0 : -1
+          isActive
+            ? activeStepFocusable
+              ? 0
+              : -1
+            : isPrevious && isPreviousStepNavigationEnabled
+              ? 0
+              : -1
         }
         transition={{
           type: "tween",
@@ -207,7 +220,12 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
         variants={stepVariants}
       >
         <StepContext.Provider value={stepContextValue}>
-          {children}
+          <div
+            className={!isActive ? "pointer-events-none" : undefined}
+            inert={!isActive ? true : undefined}
+          >
+            {children}
+          </div>
         </StepContext.Provider>
       </motion.div>
     );

@@ -4,10 +4,10 @@
 
 Add `Wizard` — a fullscreen, multi-step flow built as a single composable compound component.
 
-- compound API — `Wizard.Fullscreen`/`Wizard.Grid`/`Wizard`/`Wizard.Steps`/`Wizard.Step`/`Wizard.Page`, plus `useWizard` and `useWizardGrid` hooks
+- compound API — `Wizard.Fullscreen`/`Wizard.Grid`/`Wizard`/`Wizard.Sidebar`/`Wizard.Steps`/`Wizard.Step`/`Wizard.Page`, plus `useWizard` and `useWizardGrid` hooks
 - non-linear step navigation via `goToStep` and a declarative `when` prop, so steps can branch rather than only go linear next/back
 - fullscreen overlay with scroll lock, esc to dismiss, and a close button
-- optional left-side title (via `Wizard.Grid` `title`) and right-side step indicator (`sidebar` prop, on by default)
+- optional left-side title (via `Wizard.Grid` `title`) and composable right-side step indicator via `Wizard.Sidebar`
 - optional decorative wireframe grid
 - `width` prop on `Wizard.Fullscreen` — controls the card max-width (`"narrow"` / `"wide"`), applies with or without `Wizard.Grid`
 - optional `header` on `Wizard.Fullscreen` — renders arbitrary top chrome; header height is measured and subtracted from layout
@@ -25,6 +25,7 @@ function CreateWorker({ open, onClose }) {
     <Wizard.Fullscreen open={open} onClose={onClose}>
       <Wizard.Grid title="Create a Worker" {...gridProps}>
         <Wizard onActiveStepElementChange={onActiveStepElementChange}>
+          <Wizard.Sidebar />
           <Wizard.Steps>
             <Wizard.Step stepKey="method" label="Select a method">
               <Wizard.Page title="Ship something new" footer={<Footer />}>

@@ -8,10 +8,12 @@ export {
   type WizardProps,
   type WizardStepItem,
   type WizardLabels,
+  type WizardPreviousStepNavigation,
 } from "./wizard";
 export { WizardStep, type WizardStepProps } from "./wizard-step";
 export { WizardSteps, type WizardStepsProps } from "./wizard-steps";
 export { WizardPage, type WizardPageProps } from "./wizard-page";
+export { WizardSidebar, type WizardSidebarProps } from "./wizard-sidebar";
 export {
   WizardFullscreen,
   WizardCloseButton,
@@ -29,10 +31,12 @@ import { WizardRoot as _WizardRoot } from "./wizard";
 import { WizardStep } from "./wizard-step";
 import { WizardSteps } from "./wizard-steps";
 import { WizardPage } from "./wizard-page";
+import { WizardSidebar } from "./wizard-sidebar";
 import { WizardFullscreen, WizardCloseButton } from "./wizard-fullscreen";
 import { WizardGrid } from "./wizard-grid";
 export const Wizard = Object.assign(_WizardRoot, {
   CloseButton: WizardCloseButton,
+  Sidebar: WizardSidebar,
   Step: WizardStep,
   Steps: WizardSteps,
   Page: WizardPage,

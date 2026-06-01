@@ -249,6 +249,13 @@ export const SUB_COMPONENT_OVERRIDES: Record<string, SubComponentConfig[]> = {
       isPassThrough: false,
     },
     {
+      name: "Sidebar",
+      valueName: "WizardSidebar",
+      propsType: "WizardSidebarProps",
+      description: "Responsive step indicator showing registered step labels.",
+      isPassThrough: false,
+    },
+    {
       name: "Steps",
       valueName: "WizardSteps",
       propsType: "WizardStepsProps",
@@ -547,13 +554,11 @@ export const ADDITIONAL_COMPONENT_PROPS: Record<
       type: "number | string",
       default: "0",
     },
-    lockTabMenu: {
-      type: "boolean",
-      default: "false",
-    },
-    sidebar: {
-      type: "boolean",
-      default: "true",
+    previousStepNavigation: {
+      type: '"enabled" | "disabled"',
+      default: '"enabled"',
+      description:
+        "Controls implicit previous-step affordances. Explicit back() calls still work when disabled.",
     },
     step: {
       type: "number | string",
@@ -602,12 +607,6 @@ export const ADDITIONAL_COMPONENT_PROPS: Record<
         "Portal target element. Overrides KumoPortalProvider context.",
       default: "document.body",
     },
-    showCloseButton: {
-      type: "boolean",
-      description:
-        "Whether to show the floating close button (no-header mode only).",
-      default: "true",
-    },
     labels: {
       type: "WizardFullscreenLabels",
       description:
@@ -650,6 +649,12 @@ export const ADDITIONAL_COMPONENT_PROPS: Record<
       type: "number",
       description: "Distance from viewport top to the grid.",
       default: "147",
+    },
+  },
+  "WizardRoot.Sidebar": {
+    className: {
+      type: "string",
+      description: "Additional CSS classes.",
     },
   },
   "WizardRoot.Steps": {

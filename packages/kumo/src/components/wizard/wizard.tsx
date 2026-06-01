@@ -11,7 +11,6 @@ import {
 import { useReducedMotion } from "motion/react";
 import { cn } from "../../utils/cn";
 import { useWizardFullscreen } from "./wizard-fullscreen";
-import { WizardSidebar } from "./wizard-sidebar";
 import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect";
 
 // Catalog metadata for the Wizard component (follows the KUMO_*_VARIANTS convention).
@@ -52,6 +51,12 @@ export interface WizardStepItem {
   hideFromSidebar?: boolean;
 }
 
+interface WizardRegisteredStepItem extends WizardStepItem {
+  order: number;
+}
+
+export type WizardPreviousStepNavigation = "enabled" | "disabled";
+
 export interface WizardContextValue {
   step: number;
   /** Key of the current active step, or `undefined` if no steps are registered yet. */
@@ -63,10 +68,10 @@ export interface WizardContextValue {
   next: () => void;
   /** Go back to the previous mounted step. No-op if already on the first step. */
   back: () => void;
-  lockTabMenu: boolean;
+  previousStepNavigation: WizardPreviousStepNavigation;
   totalSteps: number;
   items: WizardStepItem[];
-  registerStep: (item: WizardStepItem) => void;
+  registerStep: (item: WizardRegisteredStepItem) => void;
   unregisterStep: (key: string) => void;
   /** Whether motion should be suppressed (prefers-reduced-motion). */
   shouldReduceMotion: boolean | null;
@@ -109,9 +114,9 @@ export type UseWizardReturn = Pick<
   | "isFirstStep"
   | "isLastStep"
   | "items"
-  | "lockTabMenu"
   | "next"
   | "onStepChange"
+  | "previousStepNavigation"
   | "step"
   | "stepKey"
   | "totalSteps"
@@ -193,8 +198,8 @@ export interface WizardProps {
   defaultStep?: number | string;
   /** Labels for internationalization of aria-labels. All labels have English defaults. */
   labels?: WizardLabels;
-  /** When true, prevents clicking previous steps to navigate back. @default false */
-  lockTabMenu?: boolean;
+  /** Controls implicit previous-step affordances (previous card/sidebar clicks). Explicit `back()` still works. @default "enabled" */
+  previousStepNavigation?: WizardPreviousStepNavigation;
   /**
    * Callback invoked when the active step's DOM element changes.
    * Used by `useWizardGrid()` to track card height for the animated grid.
@@ -217,11 +222,6 @@ export interface WizardProps {
    */
   onStepChange?: (step: number, key: string) => void;
   /**
-   * Renders the step-indicator sidebar. Visible at wide viewports (`@5xl`).
-   * @default true
-   */
-  sidebar?: boolean;
-  /**
    * Current active step (0-based index or `stepKey` string) in controlled mode.
    * When provided, the wizard is controlled — the consumer owns step state.
    * When omitted, the wizard manages its own step state internally (uncontrolled).
@@ -232,7 +232,7 @@ export interface WizardProps {
 /**
  * Multi-step wizard with card-stack slide transitions.
  *
- * Compound component with `Wizard.Steps`, `Wizard.Step`, and `Wizard.Page`.
+ * Compound component with `Wizard.Sidebar`, `Wizard.Steps`, `Wizard.Step`, and `Wizard.Page`.
  * Supports both controlled (`step`) and uncontrolled (`defaultStep`) modes.
  * The `step` prop accepts a numeric index or a string `stepKey`.
  *
@@ -272,22 +272,25 @@ function WizardRoot({
   className,
   defaultStep = 0,
   labels: labelsProp,
-  lockTabMenu = false,
   onActiveStepElementChange,
   onBeforeStepChange,
   onComplete,
   onStepChange: onStepChangeProp,
-  sidebar = true,
+  previousStepNavigation = "enabled",
   step: stepProp,
 }: WizardProps) {
   // Require Wizard.Fullscreen ancestor
-  const { closeButtonRef, headerContentRef, onClose } = useWizardFullscreen();
-  if (process.env.NODE_ENV !== "production" && closeButtonRef === null) {
+  const fullscreenContext = useWizardFullscreen();
+
+  if (process.env.NODE_ENV !== "production" && !fullscreenContext) {
     throw new Error(
       "Wizard must be rendered inside <Wizard.Fullscreen>. " +
         "Wrap your <Wizard> in <Wizard.Fullscreen open> to provide the required fullscreen context.",
     );
   }
+  const closeButtonRef = fullscreenContext?.closeButtonRef ?? null;
+  const headerContentRef = fullscreenContext?.headerContentRef ?? null;
+  const onClose = fullscreenContext?.onClose;
 
   // Controlled vs uncontrolled step state (stored as number internally)
   const isControlled = stepProp !== undefined;
@@ -295,7 +298,9 @@ function WizardRoot({
     defaultStep,
   );
 
-  const [items, setItems] = useState<WizardStepItem[]>([]);
+  const [registeredItems, setRegisteredItems] = useState<
+    WizardRegisteredStepItem[]
+  >([]);
   const [isAnimating, setIsAnimating] = useState(false);
   const [activeStepFocusable, setActiveStepFocusable] = useState(true);
   const [isChangingStep, setIsChangingStep] = useState(false);
@@ -311,6 +316,14 @@ function WizardRoot({
     [labelsProp],
   );
 
+  const items = useMemo<WizardStepItem[]>(
+    () =>
+      registeredItems.map(
+        ({ order: _order, ...registeredItem }) => registeredItem,
+      ),
+    [registeredItems],
+  );
+
   // Resolve the prop/internal value to a numeric index against the current items
   const rawStep = isControlled ? stepProp : internalStep;
   const step =
@@ -318,24 +331,25 @@ function WizardRoot({
       ? Math.max(0, resolveStepIndex(rawStep, items))
       : rawStep;
 
-  const registerStep = useCallback((item: WizardStepItem) => {
-    setItems((prev) => {
+  const registerStep = useCallback((item: WizardRegisteredStepItem) => {
+    setRegisteredItems((prev) => {
       const exists = prev.some((i) => i.key === item.key);
-      if (exists) {
-        return prev.map((i) => (i.key === item.key ? item : i));
-      }
-      return [...prev, item];
+      const next = exists
+        ? prev.map((i) => (i.key === item.key ? item : i))
+        : [...prev, item];
+      return [...next].sort((a, b) => a.order - b.order);
     });
   }, []);
 
   const unregisterStep = useCallback((key: string) => {
-    setItems((prev) => prev.filter((i) => i.key !== key));
+    setRegisteredItems((prev) => prev.filter((i) => i.key !== key));
   }, []);
 
   const totalSteps = items.length;
   const isLastStep = totalSteps > 0 && step >= totalSteps - 1;
   const isFirstStep = step === 0;
   const stepKey = items[step]?.key;
+  const isPreviousStepNavigationEnabled = previousStepNavigation === "enabled";
 
   // Keep a ref to items so commit-time resolution reads the latest set
   const itemsRef = useRef(items);
@@ -407,7 +421,7 @@ function WizardRoot({
     if (modalContainerRef.current) {
       modalContainerRef.current.scrollTop = 0;
     }
-  }, [step, onActiveStepElementChange]);
+  }, [step, stepKey, items, onActiveStepElementChange]);
 
   const focusStepContainer = useCallback(() => {
     if (currentStepRef.current) {
@@ -456,18 +470,20 @@ function WizardRoot({
           'button:not([disabled]):not([tabindex="-1"]), [href]:not([tabindex="-1"]), input:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])',
         );
 
+      const stepFocusableElements = currentStepFocusable
+        ? Array.from(currentStepFocusable)
+        : [];
+      const hasStepContent = stepFocusableElements.length > 0;
       const allowedElements: HTMLElement[] = [];
 
-      if (activeStepFocusable && currentStepRef.current) {
+      if (currentStepRef.current && (activeStepFocusable || !hasStepContent)) {
         allowedElements.push(currentStepRef.current);
       }
 
-      if (currentStepFocusable) {
-        allowedElements.push(...Array.from(currentStepFocusable));
-      }
+      allowedElements.push(...stepFocusableElements);
 
       const previousStepElement = stepElementsRef.current.get(step - 1);
-      if (previousStepElement && step > 0) {
+      if (isPreviousStepNavigationEnabled && previousStepElement && step > 0) {
         allowedElements.push(previousStepElement);
       }
 
@@ -488,10 +504,7 @@ function WizardRoot({
         allowedElements.push(closeButtonRef.current);
       }
 
-      const hasStepContent =
-        currentStepFocusable && currentStepFocusable.length > 0;
-      const minExpectedElements = step > 0 ? 2 : 1;
-      if (!hasStepContent && allowedElements.length <= minExpectedElements) {
+      if (!hasStepContent && allowedElements.length <= 1) {
         return;
       }
 
@@ -502,7 +515,11 @@ function WizardRoot({
       const activeElement = document.activeElement as HTMLElement;
       const currentIndex = allowedElements.indexOf(activeElement);
 
-      if (activeElement === currentStepRef.current && activeStepFocusable) {
+      if (
+        activeElement === currentStepRef.current &&
+        activeStepFocusable &&
+        hasStepContent
+      ) {
         setActiveStepFocusable(false);
       }
 
@@ -523,7 +540,13 @@ function WizardRoot({
 
     dialogContainer.addEventListener("keydown", handleKeyDown);
     return () => dialogContainer.removeEventListener("keydown", handleKeyDown);
-  }, [step, activeStepFocusable, closeButtonRef, headerContentRef]);
+  }, [
+    step,
+    activeStepFocusable,
+    closeButtonRef,
+    headerContentRef,
+    isPreviousStepNavigationEnabled,
+  ]);
 
   const contextValue = useMemo<WizardContextValue>(
     () => ({
@@ -539,9 +562,9 @@ function WizardRoot({
       isLastStep,
       items,
       labels,
-      lockTabMenu,
       next,
       onStepChange: handleStepChange,
+      previousStepNavigation,
       registerStep,
       setActiveStepFocusable,
       setIsAnimating,
@@ -565,8 +588,8 @@ function WizardRoot({
       isLastStep,
       items,
       labels,
-      lockTabMenu,
       next,
+      previousStepNavigation,
       registerStep,
       shouldReduceMotion,
       step,
@@ -587,7 +610,6 @@ function WizardRoot({
         ref={modalContainerRef}
       >
         {children}
-        {sidebar && <WizardSidebar />}
       </div>
     </WizardContext.Provider>
   );

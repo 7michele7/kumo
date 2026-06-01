@@ -9,7 +9,6 @@ import {
   useWizard,
 } from "@cloudflare/kumo";
 import type { NameStatus } from "./use-create-worker-demo";
-import { ShikiProvider, CodeHighlighted } from "@cloudflare/kumo/code";
 import {
   ArrowUpRightIcon,
   CheckCircleIcon,
@@ -20,19 +19,16 @@ import {
   CREATION_METHODS,
   CreationMethodCard,
   DEMO_TEMPLATES,
-  HELLO_WORLD_CODE,
   TemplateCard,
 } from "./wizard-demo-helpers";
+import { WizardDemoCodePreview } from "./wizard-code-preview";
 
 function resolveMethod(title: string): {
   method: SelectedMethod;
-  nextStep: string;
 } {
-  if (title === "Select a template")
-    return { method: "template", nextStep: "template" };
-  if (title === "Upload your static files")
-    return { method: "upload", nextStep: "upload" };
-  return { method: "hello-world", nextStep: "deploy" };
+  if (title === "Select a template") return { method: "template" };
+  if (title === "Upload your static files") return { method: "upload" };
+  return { method: "hello-world" };
 }
 
 export function SelectMethodBody({
@@ -40,20 +36,12 @@ export function SelectMethodBody({
 }: {
   onSelectMethod: (method: SelectedMethod) => void;
 }) {
-  const { goToStep } = useWizard();
-
   const gitMethods = CREATION_METHODS.slice(0, 2);
   const otherMethods = CREATION_METHODS.slice(2);
 
   function handleClick(title: string) {
-    const { method: selectedMethod, nextStep } = resolveMethod(title);
-
+    const { method: selectedMethod } = resolveMethod(title);
     onSelectMethod(selectedMethod);
-
-    // Navigate by key — the conditional steps will mount/unmount based on selectedMethod, then goToStep resolves against the new set.
-    requestAnimationFrame(() => {
-      goToStep(nextStep);
-    });
   }
 
   return (
@@ -249,13 +237,7 @@ export function DeployStepBody({
           Worker preview
         </Text>
         <div className="overflow-hidden rounded-xl border border-kumo-line bg-kumo-recessed">
-          <ShikiProvider engine="javascript" languages={["typescript"]}>
-            <CodeHighlighted
-              code={HELLO_WORLD_CODE}
-              lang="typescript"
-              className="border-0! bg-transparent! [&_pre]:whitespace-pre text-xs"
-            />
-          </ShikiProvider>
+          <WizardDemoCodePreview />
         </div>
       </div>
     </div>
@@ -290,7 +272,7 @@ export function DeployStepFooter({
 
 export function UploadStepBody() {
   return (
-    <div className="group relative flex min-h-[184px] cursor-default flex-col items-center justify-center rounded-lg bg-kumo-base shadow-xs ring-1 ring-kumo-line transition-colors hover:bg-kumo-elevated after:pointer-events-none after:absolute after:inset-1 after:rounded-md after:border after:border-dashed after:border-kumo-hairline hover:after:border-kumo-line">
+    <div className="group relative flex min-h-[184px] cursor-default flex-col items-center justify-center rounded-lg bg-kumo-base px-6 py-10 text-center shadow-xs ring-1 ring-kumo-line transition-colors hover:bg-kumo-elevated after:pointer-events-none after:absolute after:inset-1 after:rounded-md after:border after:border-dashed after:border-kumo-hairline hover:after:border-kumo-line">
       <div className="flex size-[30px] shrink-0 items-center justify-center rounded-md ring-1 ring-kumo-line shadow-xs">
         <FolderOpenIcon
           size={16}
@@ -298,10 +280,14 @@ export function UploadStepBody() {
           className="text-kumo-subtle"
         />
       </div>
-      <Text DANGEROUS_className="mt-3.5">
+      <Text DANGEROUS_className="mt-3.5 text-balance">
         Drag in or click to upload a file or folder.
       </Text>
-      <Text size="sm" variant="secondary" DANGEROUS_className="mt-1">
+      <Text
+        size="sm"
+        variant="secondary"
+        DANGEROUS_className="mt-1 text-balance"
+      >
         Contents you drag here will be uploaded to your account
       </Text>
     </div>

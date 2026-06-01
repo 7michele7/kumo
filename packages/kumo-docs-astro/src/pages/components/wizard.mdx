@@ -10,13 +10,19 @@ import ComponentSection from "~/components/docs/ComponentSection.astro";
 import CodeBlock from "~/components/docs/CodeBlock.astro";
 import PropsTable from "~/components/docs/PropsTable.astro";
 import Anatomy from "~/components/docs/Anatomy.astro";
-import { WizardFullDemo } from "~/components/demos/Wizard/WizardDemo";
+import { WizardInteractivePreview } from "~/components/demos/Wizard/WizardDemo";
+
+import { wizardHeroCode } from "~/components/demos/Wizard/wizard-hero-code";
 
 {/* Hero Demo */}
 
 <ComponentSection>
-  <ComponentExample demo="WizardFullDemo">
-    <WizardFullDemo client:load />
+  <ComponentExample
+    code={wizardHeroCode}
+    vrSection="wizard-full"
+    vrTitle="Wizard Full"
+  >
+    <WizardInteractivePreview client:load />
   </ComponentExample>
 </ComponentSection>
 
@@ -76,6 +82,13 @@ The Wizard is a compound component. Compose only the pieces you need:
       description: "Filters and indexes active steps",
     },
     {
+      name: "Wizard.Sidebar",
+      href: "#wizardsidebar",
+      depth: 3,
+      optional: true,
+      description: "Responsive step indicator",
+    },
+    {
       name: "Wizard.Step",
       href: "#wizardstep",
       depth: 4,
@@ -110,6 +123,7 @@ function CreateWorker({ open, onClose }) {
     <Wizard.Fullscreen open={open} onClose={onClose}>
       <Wizard.Grid title="Create a Worker" {...gridProps}>
         <Wizard onActiveStepElementChange={onActiveStepElementChange}>
+          <Wizard.Sidebar />
           <Wizard.Steps>
             <Wizard.Step stepKey="method" label="Select a method">
               <Wizard.Page
@@ -248,12 +262,13 @@ function Footer() {
         </td>
       </tr>
       <tr class="border-b border-kumo-hairline">
-        <td class="px-4 py-3 font-mono text-xs">lockTabMenu</td>
+        <td class="px-4 py-3 font-mono text-xs">previousStepNavigation</td>
         <td class="px-4 py-3 font-mono text-xs max-w-xs">
-          <code class="text-wrap break-words">boolean</code>
+          <code class="text-wrap break-words">"enabled" | "disabled"</code>
         </td>
         <td class="px-4 py-3 text-xs max-w-md">
-          Whether backward navigation is locked.
+          Whether implicit previous-step affordances are enabled. Explicit
+          `back()` calls still work when disabled.
         </td>
       </tr>
       <tr class="border-b border-kumo-hairline">
@@ -314,15 +329,23 @@ function Footer() {
 </p>
 
 ```tsx
-import { useWizardGrid } from "@cloudflare/kumo";
+import { Wizard, useWizardGrid } from "@cloudflare/kumo";
 
-const { gridProps, onActiveStepElementChange } = useWizardGrid();
+function CreateWizard({ step, setStep }) {
+  const { gridProps, onActiveStepElementChange } = useWizardGrid();
 
-<Wizard.Grid {...gridProps}>
-  <Wizard step={step} onStepChange={setStep}>
-    <Wizard.Steps>...</Wizard.Steps>
-  </Wizard>
-</Wizard.Grid>;
+  return (
+    <Wizard.Grid {...gridProps}>
+      <Wizard
+        step={step}
+        onStepChange={setStep}
+        onActiveStepElementChange={onActiveStepElementChange}
+      >
+        <Wizard.Steps>{/* ... */}</Wizard.Steps>
+      </Wizard>
+    </Wizard.Grid>
+  );
+}
 ```
 
 <div class="not-prose mt-4 overflow-x-auto">
@@ -393,6 +416,14 @@ const { gridProps, onActiveStepElementChange } = useWizardGrid();
   active card's measured height.
 </p>
 <PropsTable component="WizardRoot.Grid" />
+
+### Wizard.Sidebar
+
+<p>
+  Responsive step indicator. Compose it inside `Wizard` when you want the
+  sidebar treatment.
+</p>
+<PropsTable component="WizardRoot.Sidebar" />
 
 ### Wizard.Steps
 

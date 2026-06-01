@@ -32,22 +32,24 @@ export interface WizardFullscreenContextValue {
 }
 
 export const WizardFullscreenContext =
-  createContext<WizardFullscreenContextValue>({
-    closeButtonRef: null,
-    headerContentRef: null,
-    closeLabel: "Close",
-  });
+  createContext<WizardFullscreenContextValue | null>(null);
 
 /**
  * Hook to access the fullscreen container context.
- *
- * @example
- * ```tsx
- * const { closeButtonRef } = useWizardFullscreen();
- * ```
+ * @internal
  */
-export function useWizardFullscreen(): WizardFullscreenContextValue {
+export function useWizardFullscreen(): WizardFullscreenContextValue | null {
   return useContext(WizardFullscreenContext);
+}
+
+function useRequiredWizardFullscreen(): WizardFullscreenContextValue {
+  const context = useWizardFullscreen();
+  if (!context) {
+    throw new Error(
+      "Wizard.CloseButton must be rendered inside <Wizard.Fullscreen>.",
+    );
+  }
+  return context;
 }
 
 // Labels for internationalization of Wizard.Fullscreen aria-labels.
@@ -92,12 +94,6 @@ export interface WizardFullscreenProps {
   /** Controls visibility. Returns `null` when `false`. */
   open?: boolean;
   /**
-   * Whether to show the floating close button (no-header mode only).
-   * When `header` is provided, the consumer controls close placement.
-   * @default true
-   */
-  showCloseButton?: boolean;
-  /**
    * Card width preset. Sets `--wizard-card-max-width` on the dialog root
    * so both `Wizard` and `Wizard.Grid` inherit the value.
    * @default "narrow"
@@ -132,13 +128,13 @@ export interface WizardCloseButtonProps {
  * ```
  */
 export function WizardCloseButton({ className }: WizardCloseButtonProps) {
-  const { closeButtonRef, onClose, closeLabel } = useWizardFullscreen();
+  const { closeButtonRef, onClose, closeLabel } = useRequiredWizardFullscreen();
 
   return (
     <Button
       aria-label={closeLabel}
       className={className}
-      icon={<XIcon weight="bold" className="text-kumo-subtle size-4" />}
+      icon={<XIcon weight="bold" className="size-4" />}
       onClick={onClose}
       ref={closeButtonRef}
       shape="square"
@@ -193,7 +189,6 @@ export const WizardFullscreen = forwardRef<
     labels: labelsProp,
     onClose,
     open,
-    showCloseButton = true,
     width = "narrow",
   },
   ref,
@@ -289,11 +284,9 @@ export const WizardFullscreen = forwardRef<
             <div ref={headerContentRef}>{header}</div>
           </header>
         ) : (
-          showCloseButton && (
-            <div className="absolute end-4 top-4 z-10">
-              <WizardCloseButton />
-            </div>
-          )
+          <div className="absolute end-4 top-4 z-10">
+            <WizardCloseButton />
+          </div>
         )}
         <div
           className={cn("@container/wizard grow overflow-hidden", className)}

@@ -12,7 +12,7 @@ export interface WizardSidebarProps {
  * container is narrower than `@5xl` (64rem). Does not require `Wizard.Grid`.
  *
  * Steps with `hideFromSidebar: true` are excluded from the list.
- * Completed steps are clickable (navigates back) unless `lockTabMenu` is true.
+ * Completed steps are clickable when `previousStepNavigation` is enabled.
  *
  * @example
  * ```tsx
@@ -23,7 +23,7 @@ export interface WizardSidebarProps {
  * ```
  */
 export function WizardSidebar({ className }: WizardSidebarProps) {
-  const { items, step, onStepChange, lockTabMenu } = useWizard();
+  const { items, step, onStepChange, previousStepNavigation } = useWizard();
 
   const visibleItems = items.filter((item) => !item.hideFromSidebar);
 
@@ -41,7 +41,7 @@ export function WizardSidebar({ className }: WizardSidebarProps) {
         const originalIndex = items.findIndex((i) => i.key === item.key);
         const isActive = originalIndex === step;
         const isCompleted = originalIndex < step;
-        const isClickable = isCompleted && !lockTabMenu;
+        const isClickable = isCompleted && previousStepNavigation === "enabled";
 
         const isFuture = !isActive && !isCompleted;
 

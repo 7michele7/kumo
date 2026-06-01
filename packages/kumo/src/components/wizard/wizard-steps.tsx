@@ -38,9 +38,14 @@ function WizardSteps({ children, className }: WizardStepsProps) {
       return props.when !== false;
     });
 
-  const indexedChildren = activeChildren.map((child, index) => (
-    <StepIndexContext.Provider value={index}>{child}</StepIndexContext.Provider>
-  ));
+  const indexedChildren = activeChildren.map((child, index) => {
+    const props = child.props as Partial<WizardStepProps>;
+    return (
+      <StepIndexContext.Provider key={props.stepKey ?? index} value={index}>
+        {child}
+      </StepIndexContext.Provider>
+    );
+  });
 
   return (
     <div
