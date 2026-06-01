@@ -98,9 +98,7 @@ export interface DemoTemplate {
   iconClassName: string;
 }
 
-// Real templates from the cloudflare/templates catalog (github.com/cloudflare/templates).
-// Names and descriptions sourced from each template's package.json `cloudflare.label`
-// and `description` fields.
+// Real templates from the cloudflare/templates catalog (github.com/cloudflare/templates). Names and descriptions sourced from each template's package.json `cloudflare.label` and `description` fields.
 export const DEMO_TEMPLATES: DemoTemplate[] = [
   // Framework starters first
   {

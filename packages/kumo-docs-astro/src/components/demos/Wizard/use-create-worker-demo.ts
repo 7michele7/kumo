@@ -13,8 +13,7 @@ interface PlaygroundState {
   controlsOpen: boolean;
 }
 
-// Demo-only state plumbing for the Create Worker wizard example.
-// Separated from WizardDemo.tsx so the docs code block stays focused on Wizard API usage.
+// Demo-only state plumbing for the Create Worker wizard example. Separated from WizardDemo.tsx so the docs code block stays focused on Wizard API usage.
 export function useCreateWorkerDemo() {
   const [stepKey, setStepKey] = useState("method");
   const [open, setOpen] = useState(false);

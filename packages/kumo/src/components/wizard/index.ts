@@ -25,8 +25,6 @@ export { WizardGrid, type WizardGridProps } from "./wizard-grid";
 export { type WizardWidth } from "./wizard-shared";
 export { useWizardGrid, type UseWizardGridReturn } from "./use-wizard-grid";
 
-// Compound Component Assembly
-
 import { WizardRoot as _WizardRoot } from "./wizard";
 import { WizardStep } from "./wizard-step";
 import { WizardSteps } from "./wizard-steps";

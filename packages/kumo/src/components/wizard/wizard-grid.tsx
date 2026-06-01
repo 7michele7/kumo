@@ -85,14 +85,11 @@ function WizardGridAnimated({
       style={
         {
           minHeight: `calc(100vh - var(--wizard-header-height, 0px) - ${topOffset}px)`,
-          // Adaptive content-top: at normal/tall viewports this equals the
-          // fixed topOffset + 33. On short viewports it shrinks toward 56px
-          // so the card reclaims the reserved top space instead of collapsing.
+          // Adaptive content-top: at normal/tall viewports this equals the fixed topOffset + 33. On short viewports it shrinks toward 56px so the card reclaims the reserved top space instead of collapsing.
           "--wizard-content-top": `max(56px, min(${topOffset + CONTENT_OFFSET}px, calc(100vh - var(--wizard-header-height, 0px) - 280px)))`,
         } as CSSProperties
       }
     >
-      {/* Full-height vertical dashed lines */}
       <div
         className={cn(
           "pointer-events-none absolute inset-y-0 left-1/2 w-full -translate-x-1/2",
@@ -101,8 +98,6 @@ function WizardGridAnimated({
       >
         <div className="absolute left-[-6px] h-full w-[calc(100%+12px)] border-x border-y-0 border-dashed border-kumo-hairline" />
       </div>
-
-      {/* Adaptive positioning container for title + wireframe */}
       <div
         className="pointer-events-none absolute inset-x-0"
         style={{
@@ -124,8 +119,6 @@ function WizardGridAnimated({
             </h1>
           </div>
         )}
-
-        {/* Crosses + horizontal lines */}
         <div
           className={cn(
             "absolute left-1/2 flex h-[calc(100vh+1000px)] w-full -translate-x-1/2 items-center justify-center",

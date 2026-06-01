@@ -2,8 +2,7 @@ import { Wizard } from "@cloudflare/kumo";
 import { KumoMenuIcon } from "~/components/KumoMenuIcon";
 import { ThemeToggle } from "~/components/ThemeToggle";
 
-// Demo header for the Wizard playground
-// Recreates the docs header treatment from Header.astro/StickyDocHeader.tsx with Wizard.CloseButton as the final cell.
+// Demo header for the Wizard playground. Recreates the docs header treatment from Header.astro/StickyDocHeader.tsx with Wizard.CloseButton as the final cell.
 export function WizardDemoHeader() {
   return (
     <div className="flex h-12 border-b border-kumo-hairline bg-kumo-elevated">

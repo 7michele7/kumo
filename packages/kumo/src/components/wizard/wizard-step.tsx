@@ -10,10 +10,7 @@ import { motion } from "motion/react";
 import { cn } from "../../utils/cn";
 import { StepContext, StepIndexContext, useWizardInternal } from "./wizard";
 
-// Card-stack animation variants for fullscreen wizard steps.
-// Combined with `origin-bottom` on the step element so `scale` pivots at
-// the bottom edge. `y: -110%` pushes the previous step further up so only
-// a small sliver peeks above the active card.
+// Card-stack animation variants for fullscreen wizard steps. Combined with `origin-bottom` on the step element so `scale` pivots at the bottom edge. `y: -110%` pushes the previous step further up so only a small sliver peeks above the active card.
 const stepVariantsConfig = {
   current: {
     y: 0,
@@ -125,7 +122,8 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
         if (typeof ref === "function") {
           ref(element);
         } else if (ref) {
-          ref.current = element;
+          (ref as React.MutableRefObject<HTMLDivElement | null>).current =
+            element;
         }
       },
       [index, ref, stepElementsRef],
@@ -163,9 +161,7 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
             : undefined
         }
         className={cn(
-          // Position card at the grid-line offset. origin-bottom makes
-          // scale(0.85) pivot at the bottom edge so the previous-step peek
-          // is consistent regardless of card height.
+          // Position card at the grid-line offset. origin-bottom makes scale(0.85) pivot at the bottom edge so the previous-step peek is consistent regardless of card height.
           "absolute inset-x-0 top-(--wizard-content-top,180px) origin-bottom px-2 pb-8 outline-none sm:px-6",
           // Previous step with navigation enabled: go-back affordance on the wrapper
           isPrevious &&

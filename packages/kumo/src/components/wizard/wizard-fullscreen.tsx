@@ -7,7 +7,6 @@ import {
   useRef,
   useState,
   type ReactNode,
-  type RefObject,
 } from "react";
 import { XIcon } from "@phosphor-icons/react";
 import { createPortal } from "react-dom";
@@ -22,9 +21,9 @@ import { widthValueMap, type WizardWidth } from "./wizard-shared";
 
 export interface WizardFullscreenContextValue {
   /** Ref to the close button, used by Wizard's focus trap to include it. */
-  closeButtonRef: RefObject<HTMLButtonElement | null> | null;
+  closeButtonRef: { current: HTMLButtonElement | null } | null;
   /** Ref to the header content wrapper, used by Wizard's focus trap. */
-  headerContentRef: RefObject<HTMLDivElement | null> | null;
+  headerContentRef: { current: HTMLDivElement | null } | null;
   /** Close handler from Wizard.Fullscreen. */
   onClose?: () => void;
   /** Resolved close-button aria-label. */
@@ -52,8 +51,7 @@ function useRequiredWizardFullscreen(): WizardFullscreenContextValue {
   return context;
 }
 
-// Labels for internationalization of Wizard.Fullscreen aria-labels.
-// All fields are optional with English defaults.
+// Labels for internationalization of Wizard.Fullscreen aria-labels. All fields are optional with English defaults.
 export interface WizardFullscreenLabels {
   // Aria label for the close button. @default "Close"
   close?: string;
@@ -136,7 +134,7 @@ export function WizardCloseButton({ className }: WizardCloseButtonProps) {
       className={className}
       icon={<XIcon weight="bold" className="size-4" />}
       onClick={onClose}
-      ref={closeButtonRef}
+      ref={closeButtonRef as React.Ref<HTMLButtonElement>}
       shape="square"
       variant="ghost"
     />
@@ -193,10 +191,10 @@ export const WizardFullscreen = forwardRef<
   },
   ref,
 ) {
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const headerContentRef = useRef<HTMLDivElement>(null);
-  const headerShellRef = useRef<HTMLDivElement>(null);
-  const portalContainerRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const headerContentRef = useRef<HTMLDivElement | null>(null);
+  const headerShellRef = useRef<HTMLDivElement | null>(null);
+  const portalContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Measure header height with ResizeObserver
   const [headerHeight, setHeaderHeight] = useState(0);
@@ -305,7 +303,8 @@ export const WizardFullscreen = forwardRef<
       ref={(node) => {
         portalContainerRef.current = node;
         if (typeof ref === "function") ref(node);
-        else if (ref) ref.current = node;
+        else if (ref)
+          (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
       }}
       role="dialog"
       style={

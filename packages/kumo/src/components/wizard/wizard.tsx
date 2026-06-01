@@ -29,8 +29,7 @@ export const KUMO_WIZARD_DEFAULT_VARIANTS = {
 
 export type WizardVariant = keyof typeof KUMO_WIZARD_VARIANTS.variant;
 
-// Labels for internationalization of Wizard aria-labels.
-// All fields are optional with English defaults.
+// Labels for internationalization of Wizard aria-labels. All fields are optional with English defaults.
 export interface WizardLabels {
   // Builds the aria-label for a previous step's go-back affordance.
   // Receives the step's `label` prop (or the `previousStep` fallback).
@@ -82,7 +81,7 @@ export interface WizardContextValue {
   activeStepFocusable: boolean;
   setActiveStepFocusable: (focusable: boolean) => void;
   /** Map of step index → DOM element, for focus management. */
-  stepElementsRef: React.RefObject<Map<number, HTMLDivElement>>;
+  stepElementsRef: { current: Map<number, HTMLDivElement> };
   /** Ref to the current active step element. */
   currentStepRef: React.RefObject<HTMLDivElement | null>;
   /** Whether an `onBeforeStepChange` guard is pending. */
@@ -101,9 +100,7 @@ export interface WizardContextValue {
 
 const WizardContext = createContext<WizardContextValue | null>(null);
 
-// Public subset of the wizard context exposed to consumers via useWizard().
-// Internal members (registerStep, refs, animation state, etc.) are only
-// accessible via useWizardInternal() for Wizard.Step and the sidebar.
+// Public subset of the wizard context exposed to consumers via useWizard(). Internal members (registerStep, refs, animation state, etc.) are only accessible via useWizardInternal() for Wizard.Step and the sidebar.
 export type UseWizardReturn = Pick<
   WizardContextValue,
   | "back"
@@ -140,8 +137,7 @@ export function useWizard(): UseWizardReturn {
   return context;
 }
 
-// @internal — Full context access for internal sub-components (Wizard.Step,
-// sidebar). Consumers should use useWizard() instead.
+// @internal — Full context access for internal sub-components (Wizard.Step, sidebar). Consumers should use useWizard() instead.
 export function useWizardInternal(): WizardContextValue {
   const context = useContext(WizardContext);
   if (!context) {
