@@ -1,5 +1,119 @@
 # @cloudflare/kumo-docs-astro
 
+## 1.5.6
+
+### Patch Changes
+
+- Updated dependencies [2daa237]
+  - @cloudflare/kumo@2.4.1
+
+## 1.5.5
+
+### Patch Changes
+
+- 59f6e37: Fix stray `<p>` elements rendering around inline `<code>` in MDX docs (notably on the Select page's Grouped Options section). Replace inline `<code class="...">` tags with markdown backticks so Prettier line-wrapping no longer breaks the surrounding paragraph.
+- Updated dependencies [ab273fe]
+- Updated dependencies [b93d881]
+- Updated dependencies [351fac9]
+- Updated dependencies [3db8294]
+- Updated dependencies [a9a1526]
+- Updated dependencies [6d5d9f0]
+- Updated dependencies [5081d35]
+- Updated dependencies [9d4a2ff]
+- Updated dependencies [3db8294]
+- Updated dependencies [18f5e42]
+- Updated dependencies [1585bfe]
+- Updated dependencies [6e9b524]
+- Updated dependencies [729caa3]
+  - @cloudflare/kumo@2.4.0
+
+## 1.5.4
+
+### Patch Changes
+
+- b68caba: Added `Badge` dot styling as a new variant for indicators that need a subtle visual cue.
+  Updated badge docs and demo examples to reflect the new badge variant and dot-style behavior.
+- 4f2b47c: Add inline label layout and fix auto-assigned node colors in tooltips
+- Updated dependencies [b68caba]
+- Updated dependencies [a210c9c]
+- Updated dependencies [64a4bda]
+- Updated dependencies [0003bf5]
+- Updated dependencies [4f2b47c]
+- Updated dependencies [0e79214]
+  - @cloudflare/kumo@2.3.0
+
+## 1.5.3
+
+### Patch Changes
+
+- Updated dependencies [94d0c22]
+  - @cloudflare/kumo@2.2.2
+
+## 1.5.2
+
+### Patch Changes
+
+- Updated dependencies [57bbe62]
+- Updated dependencies [3d80fe7]
+- Updated dependencies [194aea8]
+  - @cloudflare/kumo@2.2.1
+
+## 1.5.1
+
+### Patch Changes
+
+- Updated dependencies [bccc684]
+- Updated dependencies [974277f]
+- Updated dependencies [8d43b8b]
+- Updated dependencies [93d04bd]
+- Updated dependencies [228a9c4]
+- Updated dependencies [862389a]
+- Updated dependencies [1bfbc0e]
+- Updated dependencies [da502ce]
+- Updated dependencies [59b6590]
+- Updated dependencies [798c2da]
+  - @cloudflare/kumo@2.2.0
+
+## 1.5.0
+
+### Minor Changes
+
+- 8a33813: Create Sankey Chart component
+
+### Patch Changes
+
+- Updated dependencies [a21cc3a]
+- Updated dependencies [0414c54]
+- Updated dependencies [8b12a4c]
+- Updated dependencies [7d8ec27]
+- Updated dependencies [8a33813]
+  - @cloudflare/kumo@2.1.0
+
+## 1.4.5
+
+### Patch Changes
+
+- Updated dependencies [8f8a55d]
+  - @cloudflare/kumo@2.0.5
+
+## 1.4.4
+
+### Patch Changes
+
+- Updated dependencies [8926ee7]
+- Updated dependencies [75d4f4d]
+- Updated dependencies [f2d356d]
+  - @cloudflare/kumo@2.0.4
+
+## 1.4.3
+
+### Patch Changes
+
+- Updated dependencies [3b36e21]
+- Updated dependencies [5d5d810]
+- Updated dependencies [62e093c]
+  - @cloudflare/kumo@2.0.3
+
 ## 1.4.2
 
 ### Patch Changes

@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { CaretUpDownIcon } from "@phosphor-icons/react";
 import { Combobox, Text, Button } from "@cloudflare/kumo";
+import { languages, type Language } from "./data/languages";
 
 // Basic fruits list for simple demos (expanded to test scrolling)
 const fruits = [
@@ -40,46 +42,6 @@ const fruits = [
   "Strawberry",
   "Tangerine",
   "Watermelon",
-];
-
-// Languages with emoji for searchable inside popup demo
-type Language = {
-  value: string;
-  label: string;
-  emoji: string;
-};
-
-const languages: Language[] = [
-  { value: "en", label: "English", emoji: "🇬🇧" },
-  { value: "fr", label: "French", emoji: "🇫🇷" },
-  { value: "de", label: "German", emoji: "🇩🇪" },
-  { value: "es", label: "Spanish", emoji: "🇪🇸" },
-  { value: "it", label: "Italian", emoji: "🇮🇹" },
-  { value: "pt", label: "Portuguese", emoji: "🇵🇹" },
-  { value: "nl", label: "Dutch", emoji: "🇳🇱" },
-  { value: "pl", label: "Polish", emoji: "🇵🇱" },
-  { value: "ru", label: "Russian", emoji: "🇷🇺" },
-  { value: "ja", label: "Japanese", emoji: "🇯🇵" },
-  { value: "zh", label: "Chinese", emoji: "🇨🇳" },
-  { value: "ko", label: "Korean", emoji: "🇰🇷" },
-  { value: "ar", label: "Arabic", emoji: "🇸🇦" },
-  { value: "hi", label: "Hindi", emoji: "🇮🇳" },
-  { value: "tr", label: "Turkish", emoji: "🇹🇷" },
-  { value: "vi", label: "Vietnamese", emoji: "🇻🇳" },
-  { value: "th", label: "Thai", emoji: "🇹🇭" },
-  { value: "sv", label: "Swedish", emoji: "🇸🇪" },
-  { value: "no", label: "Norwegian", emoji: "🇳🇴" },
-  { value: "da", label: "Danish", emoji: "🇩🇰" },
-  { value: "fi", label: "Finnish", emoji: "🇫🇮" },
-  { value: "el", label: "Greek", emoji: "🇬🇷" },
-  { value: "cs", label: "Czech", emoji: "🇨🇿" },
-  { value: "ro", label: "Romanian", emoji: "🇷🇴" },
-  { value: "hu", label: "Hungarian", emoji: "🇭🇺" },
-  { value: "uk", label: "Ukrainian", emoji: "🇺🇦" },
-  { value: "id", label: "Indonesian", emoji: "🇮🇩" },
-  { value: "ms", label: "Malay", emoji: "🇲🇾" },
-  { value: "he", label: "Hebrew", emoji: "🇮🇱" },
-  { value: "fa", label: "Persian", emoji: "🇮🇷" },
 ];
 
 // Server locations for grouped demo
@@ -210,6 +172,36 @@ export function ComboboxSearchableInsideDemo() {
       items={languages}
     >
       <Combobox.TriggerValue className="w-[200px]" />
+      <Combobox.Content>
+        <Combobox.Input placeholder="Search languages" />
+        <Combobox.Empty />
+        <Combobox.List>
+          {(item: Language) => (
+            <Combobox.Item key={item.value} value={item}>
+              {item.emoji} {item.label}
+            </Combobox.Item>
+          )}
+        </Combobox.List>
+      </Combobox.Content>
+    </Combobox>
+  );
+}
+
+/** Demonstrates using TriggerValue with a placeholder, behaving like a
+ * searchable Select field. The placeholder is shown until a value is selected. */
+export function ComboboxSearchableSelectDemo() {
+  const [value, setValue] = useState<Language | null>(null);
+
+  return (
+    <Combobox
+      value={value}
+      onValueChange={(v) => setValue(v as Language | null)}
+      items={languages}
+    >
+      <Combobox.TriggerValue
+        className="w-[200px]"
+        placeholder="Select a language"
+      />
       <Combobox.Content>
         <Combobox.Input placeholder="Search languages" />
         <Combobox.Empty />
@@ -576,5 +568,41 @@ export function ComboboxSizesSearchableInsideDemo() {
         </Combobox.Content>
       </Combobox>
     </div>
+  );
+}
+
+export function ComboboxCustomTriggerDemo() {
+  const [value, setValue] = useState<Language>(languages[0]);
+
+  return (
+    <Combobox
+      value={value}
+      onValueChange={(v) => setValue(v as Language)}
+      items={languages}
+    >
+      <Combobox.Trigger
+        render={
+          <Button variant="ghost" size="sm" />
+        }
+      >
+        <Combobox.Value>
+          <span className="truncate">
+            {value.emoji} {value.label}
+          </span>
+        </Combobox.Value>
+        <CaretUpDownIcon size={14} className="text-kumo-subtle shrink-0" />
+      </Combobox.Trigger>
+      <Combobox.Content>
+        <Combobox.Input placeholder="Search languages" />
+        <Combobox.Empty />
+        <Combobox.List>
+          {(item: Language) => (
+            <Combobox.Item key={item.value} value={item}>
+              {item.emoji} {item.label}
+            </Combobox.Item>
+          )}
+        </Combobox.List>
+      </Combobox.Content>
+    </Combobox>
   );
 }

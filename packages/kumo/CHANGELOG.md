@@ -1,5 +1,197 @@
 # @cloudflare/kumo
 
+## 2.4.1
+
+### Patch Changes
+
+- 2daa237: Fix Combobox and Autocomplete rendering in React 18 by using the explicit context provider API.
+
+## 2.4.0
+
+### Minor Changes
+
+- b93d881: Update Banner to use borderless tinted styling by default and add a secondary variant.
+- a9a1526: Re-export `useFilter` from `Combobox` and `Autocomplete` namespaces. Use it to write custom `filter` props that preserve Base UI's default case- and accent-insensitive matching via `Intl.Collator`.
+- 3db8294: Sidebar: comprehensive modernization
+
+  **Breaking changes:**
+  - Removed `Sidebar.Input` — build custom search triggers inline
+  - Removed `Sidebar.MenuAction` — unused in practice
+  - Removed `Sidebar.GroupContent` and group-level collapsible props (`collapsible`, `defaultOpen`, `open`, `onOpenChange`) from `Sidebar.Group` — use `Sidebar.Collapsible` at the item level instead
+  - Replaced Base UI Collapsible dependency with custom CSS grid-rows implementation
+  - `SidebarState` type is now `"expanded" | "collapsed" | "peeking"` (was `"expanded" | "collapsed"`)
+
+  **New features:**
+  - `contained` prop on Provider — absolute positioning for embedded/demo sidebars
+  - `peekable` prop on Provider — hover/focus collapsed sidebar to temporarily expand
+  - `animationDuration` prop on Provider — configurable animation timing
+  - `Sidebar.SlidingViews` + `Sidebar.SlidingView` — animated horizontal transitions between navigation surfaces
+  - Animated `SidebarPanelIcon` replacing Phosphor `SidebarSimpleIcon`
+  - Enhanced `Sidebar.Trigger` with `aria-expanded` and dynamic `aria-label`
+  - Keyboard-accessible resize handle (arrow keys, Home, End)
+  - Custom `Sidebar.Collapsible` with keyboard auto-expand on focus
+
+  **Token/styling fixes:**
+  - `border-kumo-hairline` → `border-kumo-line` throughout
+  - Hardcoded `duration-250` → `--sidebar-animation-duration` CSS custom property
+  - `bg-kumo-base` → `bg-(--sidebar-bg)` for theme overridability
+  - Focus styles: `ring-2/ring-kumo-brand` → `outline-none/text-kumo-strong/bg-kumo-tint`
+  - Icon opacity-50, updated spacing (header h-58px, footer h-12, menu gap-y-px)
+  - `isolate` on sidebar root with low z-index (z-1, z-2) instead of z-20/z-50
+  - Mobile sidebar now has correct `data-state`/`data-side`/`data-variant`/`data-collapsible` attributes
+
+- 18f5e42: **TimeseriesChart: React tooltip with Base UI positioning**
+
+  Replaces ECharts' HTML-string tooltip with a React component positioned by Base UI's Tooltip primitive:
+  - Tooltip rendered as a React component with correct theme tokens — no more inline styles or `getComputedStyle` hacks
+  - Positioning handled by Base UI Tooltip (Floating UI), with automatic collision avoidance and viewport flipping
+  - New `tooltipFollowCursor` prop: `"both"` (default, free-following) or `"x"` (axis-locked, Recharts-style)
+  - New `tooltipMode` prop: `"all"` (default) or `"single"` (nearest series to cursor)
+  - New `tooltipMaxItems` prop: caps rows in `"all"` mode with `+N more` footer (default `10`)
+  - Date formatted with `Intl.DateTimeFormat` (locale-aware) instead of ISO string
+  - Values sorted descending; fallback formatter avoids scientific notation
+
+### Patch Changes
+
+- ab273fe: Banner: replace `dark:` Tailwind variants with new `kumo-banner-info` and `kumo-banner-warning` semantic tokens so dark-mode opacity is baked into the design system. No visual change.
+- 351fac9: fix(styles): show pointer cursor on clickable Kumo elements by default
+
+  Adds a global `cursor: pointer` rule scoped to elements rendered by Kumo
+  components, identified by the new `data-kumo-component` and `data-kumo-part`
+  attributes. Interactive component roots and parts now opt into the rule by
+  setting these attributes, which gives the library a stable scoping primitive
+  that doesn't couple to Tailwind class names.
+
+  Components updated to set `data-kumo-component` / `data-kumo-part`:
+  Button, LinkButton, Link, Checkbox, Radio, Switch, Select (trigger, option),
+  DropdownMenu (item, link-item, checkbox-item, radio-item, submenu-trigger),
+  Combobox (trigger, item, clear, chip-remove), Autocomplete (item),
+  Dialog (trigger, close), Popover (trigger), Tabs (tab),
+  Collapsible (trigger, default-trigger), Breadcrumbs (link),
+  TableOfContents (item, group-link), Sidebar (menu-button, menu-sub-button,
+  trigger, rail), MenuBar (option), Toast (close), SensitiveInput
+  (toggle-visibility, copy, masked-container).
+
+- 3db8294: fix(sidebar): collapsed state styling, transitions, and sliding views
+- 6d5d9f0: Add `flex items-center` to `ComboboxBase.Icon` in `TriggerInput` for consistency with `TriggerValue` and `Select`
+- 5081d35: Fix `Select` placeholder not showing when `renderValue` is provided and the value is empty.
+- 9d4a2ff: Update semantic color tokens to better represent status icons and indicators:
+  - Adjust status token values in the theme generator and refresh generated theme output
+  - Update toast and badge status background treatments
+  - Update docs to reflect new tint token usage
+- 1585bfe: Adjust toast visual styling for improved readability and emphasis: increase background tint intensity for success/warning/info variants, refine description text contrast, and update close-button icon contrast.
+- 6e9b524: Fixed vertical alignment of checkbox and radio indicators with multi-line labels.
+
+  When label text wrapped to multiple lines, the indicators were vertically centered against the entire text block. They now align to the top, sitting next to the first line of text.
+
+- 729caa3: echarts is now an optional peer dependency. If you don't use Chart components (Chart, TimeseriesChart, SankeyChart), it will no longer be installed automatically. If you do use them, run npm install echarts (as documented).
+
+## 2.3.0
+
+### Minor Changes
+
+- b68caba: Added `Badge` dot styling as a new variant for indicators that need a subtle visual cue.
+  Updated badge docs and demo examples to reflect the new badge variant and dot-style behavior.
+
+### Patch Changes
+
+- a210c9c: Update Base UI to 1.5.0.
+- 64a4bda: Fix InputGroup focus ring thickness and color: container mode uses 1.5px ring (wraps entire group including buttons), hybrid container zone and individual mode use 1px ring (thin to avoid colliding with adjacent buttons), and all modes use `ring-kumo-focus/50` (50% opacity) to match the standalone Input component.
+- 0003bf5: Fix error state red border on Combobox, Select, Autocomplete, and SensitiveInput to match Input behavior
+- 4f2b47c: Add inline label layout and fix auto-assigned node colors in tooltips
+- 0e79214: Fix Tooltip popup overflowing viewport when content is wider than available space. The popup now constrains its width to `var(--available-width)`, a CSS variable provided by Base UI's Positioner that reflects the space between the trigger and the viewport edge.
+
+## 2.2.2
+
+### Patch Changes
+
+- 94d0c22: Fix language alias normalization in ShikiProvider
+  - Add `normalizeLanguage()` function that maps common language aliases (js, ts, sh, yml, py, md, gql) to their canonical SupportedLanguage names
+  - Normalize language aliases in `ShikiProvider` when preloading grammars, so passing `['js', 'ts']` works the same as `['javascript', 'typescript']`
+  - Normalize language aliases in `highlight()` hook at runtime, so code fences using `js` or `ts` highlight correctly without warnings
+  - Export `normalizeLanguage` from `@cloudflare/kumo/code` for consumers who need to normalize aliases themselves
+  - Intentionally omit `mdx` alias since MDX has a distinct grammar that would lose JSX highlighting if mapped to `markdown`
+
+## 2.2.1
+
+### Patch Changes
+
+- 57bbe62: fix(banner): remove variant selection background for legibility
+
+  Selected text inside `Banner` now uses the browser default selection color
+  instead of a same-hue variant-tinted background. The previous
+  `selection:bg-kumo-{info,warning,danger}` utilities produced low contrast
+  between the selection background and the variant text color (most notably
+  in light mode for the `error` and `alert` variants), making selected text
+  hard to read.
+
+- 3d80fe7: Add `left` and `right` props to SankeyChart for controlling series layout padding
+- 194aea8: Fix tooltip popup exit transitions by animating the Tailwind `scale` property alongside opacity.
+
+## 2.2.0
+
+### Minor Changes
+
+- 228a9c4: Add `passwordManagerIgnore` to Input for suppressing password manager overlays on non-credential fields.
+- da502ce: Add scroll fade to segmented tabs. When tabs overflow, gradient masks appear on the edges based on scroll position via scroll-driven animations (Chrome 115+, degrades gracefully). Scrollbar is hidden; the fade is the scroll affordance.
+- 59b6590: Add `size="sm"` variant to Tabs component (h-6.5 / 26px, matching Input sm)
+- 798c2da: Forward `toastManager` prop on `<Toasty>` so code outside the React tree (timers, query-cache listeners, module-load callbacks) can dispatch toasts via a manager created by `createKumoToastManager()`. Also surface `createKumoToastManager` on the top-level package export (previously only available via the deep `@cloudflare/kumo/components/toast` path).
+
+### Patch Changes
+
+- bccc684: Add transparent background to SankeyChart component
+- 974277f: Expose `optionUpdateBehavior` prop on `TimeseriesChart` to control how ECharts applies option updates
+- 8d43b8b: Add `hideLabel` prop to Field so components can skip the native `<label>` while keeping description/error wiring. Use it in Select with Base UI's `Select.Label` to fix hover/focus coupling between the label text and trigger.
+- 93d04bd: fix(input): render error and description props without requiring a label
+- 862389a: fix(radio): prevent radio button distortion with long labels by adding `shrink-0` to the default appearance radio indicator
+- 1bfbc0e: Fix overflowing segmented Tabs drag-to-scroll interactions so mouse and touch drags reliably scroll while normal tab clicks still activate tabs.
+
+## 2.1.0
+
+### Minor Changes
+
+- 8a33813: Create Sankey Chart component
+
+### Patch Changes
+
+- a21cc3a: Fix CommandPalette List bottom ring being clipped by Footer background. Add scroll padding to prevent items from clipping behind rounded corners.
+- 0414c54: Deprecate `to` prop on Link in favor of `href`. The `to` prop is a routing-framework concept that doesn't belong on a presentational component. Use `href` for all link destinations and configure a `LinkProvider` wrapper to bridge to your router. `to` continues to work but emits a dev-mode deprecation warning.
+- 8b12a4c: Allow `LayerCard.Primary` and `LayerCard.Secondary` to accept all standard HTML div attributes, including `data-testid` for testing.
+- 7d8ec27: Set `cursor-default` on Tooltip triggers so disclosure buttons don't appear clickable. Overridable via `className`.
+
+## 2.0.5
+
+### Patch Changes
+
+- 8f8a55d: Export `Combobox.Trigger`, `Combobox.Value`, and `Combobox.Icon` — the raw Base UI primitives for building custom combobox triggers. Use these when you need full control over the trigger's visual treatment (e.g. a sidebar account switcher that renders as a plain button instead of an input-like control).
+
+## 2.0.4
+
+### Patch Changes
+
+- 8926ee7: fix(CloudflareLogo): remove registered trademark symbol from full logo variant
+- 75d4f4d: Fix Google Translate DOM mutation crash in Button
+- f2d356d: Remove z-50 from mobile Sidebar Dialog backdrop and panel. The z-50 caused portaled floating elements (Popover, DropdownMenu, Select, Combobox) opened from inside the Sidebar to render behind the Dialog backdrop. Matches the pattern used by Kumo's own Dialog component, which relies on DOM order for stacking with no explicit z-index. Also adds `data-sidebar-backdrop` and `data-sidebar-popup` attributes as stable CSS hooks.
+
+## 2.0.3
+
+### Patch Changes
+
+- 3b36e21: fix(combobox): forward all props from TriggerValue to ComboboxBase.Value, enabling placeholder support and styled placeholder text via data-[placeholder]:text-kumo-placeholder
+- 5d5d810: fix(registry): correct Select component metadata for AI-generated code
+
+  The component registry metadata was incorrectly typing Select's `value`, `defaultValue`, and `onValueChange` props as `string`, causing AI agents to produce broken code when implementing Select with object values (e.g., rendering `object.value` in the trigger instead of the label).
+
+  Changes:
+  - `value` type: `string` → `T` (generic, matches actual component interface)
+  - `defaultValue` type: `string` → `T`
+  - `onValueChange` type: `(value: string) => void` → `(value: T) => void`
+  - Added missing `renderValue` prop: `(value: T) => ReactNode` — required for object values
+  - Added missing `items` prop: supports both `Record<string, string>` and `Array<{ label, value }>` forms
+  - Added missing `isItemEqualToValue` prop: required for object equality comparison
+
+- 62e093c: Gracefully fall back to default variant instead of crashing when an invalid variant prop is passed at runtime. Previously 22 of 25 components would throw `TypeError` on unknown variant values; all 25 now use a shared `resolveVariant()` utility that returns the default config and logs a dev warning.
+
 ## 2.0.2
 
 ### Patch Changes

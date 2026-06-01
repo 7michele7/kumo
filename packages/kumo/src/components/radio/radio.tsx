@@ -266,6 +266,8 @@ const RadioItem = forwardRef<HTMLButtonElement, RadioItemProps>(
       const controlAtStart = effectiveControlPosition === "start";
       return (
         <label
+          data-kumo-component="Radio"
+          data-kumo-part="item-label"
           className={cn(
             "m-0 group relative flex items-start gap-3 rounded-lg border border-kumo-hairline bg-kumo-base p-3 transition-colors has-[[data-checked]]:border-kumo-interact has-[[data-checked]]:bg-kumo-tint",
             controlAtStart && "flex-row-reverse",
@@ -291,6 +293,8 @@ const RadioItem = forwardRef<HTMLButtonElement, RadioItemProps>(
           </div>
           <BaseRadio.Root
             ref={ref}
+            data-kumo-component="Radio"
+            data-kumo-part="item"
             value={value}
             disabled={disabled}
             className={cn(
@@ -318,8 +322,10 @@ const RadioItem = forwardRef<HTMLButtonElement, RadioItemProps>(
 
     return (
       <label
+        data-kumo-component="Radio"
+        data-kumo-part="item-label"
         className={cn(
-          "m-0 group relative inline-flex items-center gap-2",
+          "m-0 group relative inline-flex items-start gap-2",
           // "start" (default): radio before label
           // "end": label before radio using flex-row-reverse
           effectiveControlPosition === "end" && "flex-row-reverse justify-end",
@@ -329,10 +335,12 @@ const RadioItem = forwardRef<HTMLButtonElement, RadioItemProps>(
       >
         <BaseRadio.Root
           ref={ref}
+          data-kumo-component="Radio"
+          data-kumo-part="item"
           value={value}
           disabled={disabled}
           className={cn(
-            "relative flex h-4 w-4 items-center justify-center rounded-full border-0 bg-kumo-base ring focus:outline-none after:absolute after:-inset-x-3 after:-inset-y-2",
+            "relative mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-0 bg-kumo-base ring focus:outline-none after:absolute after:-inset-x-3 after:-inset-y-2",
             variant === "error" ? "ring-kumo-danger" : "ring-kumo-line",
             !disabled &&
               variant !== "error" &&

@@ -94,7 +94,7 @@ export const SensitiveInput = forwardRef<HTMLInputElement, SensitiveInputProps>(
       onValueChange,
       onCopy,
       size = KUMO_SENSITIVE_INPUT_DEFAULT_VARIANTS.size,
-      variant = KUMO_SENSITIVE_INPUT_DEFAULT_VARIANTS.variant,
+      variant: variantProp,
       disabled = false,
       readOnly = false,
       id,
@@ -109,6 +109,18 @@ export const SensitiveInput = forwardRef<HTMLInputElement, SensitiveInputProps>(
     },
     ref,
   ) => {
+    // Deprecation warning for variant="error"
+    if (process.env.NODE_ENV !== "production" && variantProp === "error") {
+      console.warn(
+        '[Kumo SensitiveInput]: variant="error" is deprecated. ' +
+          "Error styling is now automatically applied when the `error` prop is truthy. " +
+          "Simply remove the variant prop and pass an error message instead.",
+      );
+    }
+
+    // Auto-apply error styling when error prop is truthy
+    // Explicit variant prop takes precedence for backwards compatibility
+    const variant = variantProp ?? (error ? "error" : "default");
     // For aria-label, only use string labels (ReactNode labels can't be used for aria-label)
     const ariaLabelFallback =
       typeof label === "string" ? label : "Sensitive value";
@@ -395,6 +407,8 @@ export const SensitiveInput = forwardRef<HTMLInputElement, SensitiveInputProps>(
         {/* Eye button - absolutely positioned to the right */}
         <button
           type="button"
+          data-kumo-component="SensitiveInput"
+          data-kumo-part="toggle-visibility"
           onClick={handleToggleVisibility}
           onKeyDown={(e) => e.stopPropagation()}
           aria-label={mode === "revealed" ? "Hide value" : "Reveal value"}
@@ -423,6 +437,8 @@ export const SensitiveInput = forwardRef<HTMLInputElement, SensitiveInputProps>(
         {hasValue && !disabled && (
           <button
             type="button"
+            data-kumo-component="SensitiveInput"
+            data-kumo-part="copy"
             onClick={copyToClipboard}
             onKeyDown={(e) => e.stopPropagation()}
             aria-label={copied ? "Copied" : "Copy to clipboard"}
@@ -447,6 +463,8 @@ export const SensitiveInput = forwardRef<HTMLInputElement, SensitiveInputProps>(
             // Using role="button" with proper keyboard handling instead.
             // oxlint-disable-next-line prefer-tag-over-role
             role="button"
+            data-kumo-component="SensitiveInput"
+            data-kumo-part="masked-container"
             tabIndex={disabled ? -1 : 0}
             className={containerClassName}
             onClick={handleContainerClick}
