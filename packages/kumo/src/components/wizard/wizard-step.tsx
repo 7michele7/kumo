@@ -218,7 +218,8 @@ const WizardStep = forwardRef<HTMLDivElement, WizardStepProps>(
         <StepContext.Provider value={stepContextValue}>
           <div
             className={!isActive ? "pointer-events-none" : undefined}
-            inert={!isActive ? true : undefined}
+            // React 18's runtime drops the boolean inert prop (only React 19 honors it), so pass a string to render the attribute in both
+            inert={!isActive ? ("true" as unknown as boolean) : undefined}
           >
             {children}
           </div>

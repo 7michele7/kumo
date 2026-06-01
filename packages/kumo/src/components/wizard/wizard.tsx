@@ -463,7 +463,7 @@ function WizardRoot({
 
       const currentStepFocusable =
         currentStepRef.current?.querySelectorAll<HTMLElement>(
-          'button:not([disabled]):not([tabindex="-1"]), [href]:not([tabindex="-1"]), input:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])',
+          'button:not([disabled]):not([tabindex="-1"]), a[href]:not([tabindex="-1"]), input:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])',
         );
 
       const stepFocusableElements = currentStepFocusable
@@ -487,7 +487,7 @@ function WizardRoot({
       if (headerContentRef?.current) {
         const headerFocusable =
           headerContentRef.current.querySelectorAll<HTMLElement>(
-            'button:not([disabled]):not([tabindex="-1"]), [href]:not([tabindex="-1"]), input:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])',
+            'button:not([disabled]):not([tabindex="-1"]), a[href]:not([tabindex="-1"]), input:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])',
           );
         allowedElements.push(...Array.from(headerFocusable));
       }
