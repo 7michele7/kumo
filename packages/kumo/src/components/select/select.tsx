@@ -6,6 +6,7 @@ import { cn } from "../../utils/cn";
 import { buttonVariants } from "../button";
 import { KUMO_INPUT_VARIANTS, type KumoInputSize } from "../input/input";
 import { SkeletonLine } from "../loader";
+import { Label } from "../label";
 import { Field, type FieldErrorMatch } from "../field/field";
 import {
   usePortalContainer,
@@ -403,21 +404,44 @@ export function Select<T, Multiple extends boolean | undefined = false>({
   // - When value is non-null, call user's renderValue
   const valueChildrenFn = renderValue
     ? (value: unknown) => {
-        if (value == null) {
-          // If no placeholder provided, return null to show nothing (same as no renderValue)
-          if (placeholder == null) {
-            return null;
-          }
-          return <span className="text-kumo-placeholder">{placeholder}</span>;
+        const placeholderNode =
+          placeholder != null ? (
+            <span className="text-kumo-placeholder">{placeholder}</span>
+          ) : null;
+
+        if (value == null || value === "") {
+          return placeholderNode;
         }
+
         // Cast through `any` as a deliberate type boundary: Base UI passes `unknown`,
         // but our renderValue expects the generic T (or T[] for multiple)
-        return renderValue(value as any);
+        const rendered = renderValue(value as any);
+
+        if (rendered == null) {
+          return placeholderNode;
+        }
+
+        return rendered;
       }
     : undefined;
 
   // Exclude Kumo-extended `items` from Base UI spread — we pass `normalizedItems` instead
   const { items: _items, ...baseProps } = props;
+
+  // Use Base UI's Select.Label for accessible naming — avoids the
+  // hover/focus coupling that a native <label> (from Field) would cause.
+  const showOptional = required === false;
+  const selectLabelNode = label ? (
+    <SelectBase.Label className="m-0 select-none text-base font-medium text-kumo-default">
+      <Label
+        showOptional={showOptional}
+        tooltip={hideLabel ? undefined : labelTooltip}
+        asContent
+      >
+        {label}
+      </Label>
+    </SelectBase.Label>
+  ) : null;
 
   const selectControl = (
     <SelectBase.Root
@@ -425,10 +449,15 @@ export function Select<T, Multiple extends boolean | undefined = false>({
       items={normalizedItems}
       disabled={loading || props.disabled}
     >
+      {selectLabelNode}
       <SelectBase.Trigger
+        data-kumo-component="Select"
+        data-kumo-part="trigger"
         className={cn(
           selectVariants({ size }),
           props.disabled && "cursor-not-allowed opacity-50",
+          error &&
+            "!ring-kumo-danger focus:ring-kumo-danger/50 focus:ring-[1.5px]",
           className,
         )}
         aria-label={triggerAriaLabel}
@@ -494,6 +523,7 @@ export function Select<T, Multiple extends boolean | undefined = false>({
               : error
             : undefined
         }
+        hideLabel
       >
         {selectControl}
       </Field>
@@ -543,6 +573,8 @@ type OptionProps<T> = {
 function Option<T>({ children, value, disabled, className }: OptionProps<T>) {
   return (
     <SelectBase.Item
+      data-kumo-component="Select"
+      data-kumo-part="option"
       value={value}
       disabled={disabled}
       className={cn(

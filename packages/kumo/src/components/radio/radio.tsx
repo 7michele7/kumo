@@ -1,5 +1,6 @@
 import { forwardRef, createContext, useContext, type ReactNode } from "react";
 import { cn } from "../../utils/cn";
+import { resolveVariant } from "../../utils/resolve-variant";
 import { Fieldset } from "@base-ui/react/fieldset";
 import { RadioGroup as BaseRadioGroup } from "@base-ui/react/radio-group";
 import { Radio as BaseRadio } from "@base-ui/react/radio";
@@ -61,8 +62,8 @@ export function radioVariants({
   appearance = KUMO_RADIO_DEFAULT_VARIANTS.appearance,
 }: KumoRadioVariantsProps = {}) {
   return cn(
-    KUMO_RADIO_VARIANTS.variant[variant].classes,
-    KUMO_RADIO_VARIANTS.appearance[appearance].classes,
+    resolveVariant(KUMO_RADIO_VARIANTS.variant, variant, KUMO_RADIO_DEFAULT_VARIANTS.variant).classes,
+    resolveVariant(KUMO_RADIO_VARIANTS.appearance, appearance, KUMO_RADIO_DEFAULT_VARIANTS.appearance).classes,
   );
 }
 
@@ -265,6 +266,8 @@ const RadioItem = forwardRef<HTMLButtonElement, RadioItemProps>(
       const controlAtStart = effectiveControlPosition === "start";
       return (
         <label
+          data-kumo-component="Radio"
+          data-kumo-part="item-label"
           className={cn(
             "m-0 group relative flex items-start gap-3 rounded-lg border border-kumo-hairline bg-kumo-base p-3 transition-colors has-[[data-checked]]:border-kumo-interact has-[[data-checked]]:bg-kumo-tint",
             controlAtStart && "flex-row-reverse",
@@ -290,6 +293,8 @@ const RadioItem = forwardRef<HTMLButtonElement, RadioItemProps>(
           </div>
           <BaseRadio.Root
             ref={ref}
+            data-kumo-component="Radio"
+            data-kumo-part="item"
             value={value}
             disabled={disabled}
             className={cn(
@@ -317,8 +322,10 @@ const RadioItem = forwardRef<HTMLButtonElement, RadioItemProps>(
 
     return (
       <label
+        data-kumo-component="Radio"
+        data-kumo-part="item-label"
         className={cn(
-          "m-0 group relative inline-flex items-center gap-2",
+          "m-0 group relative inline-flex items-start gap-2",
           // "start" (default): radio before label
           // "end": label before radio using flex-row-reverse
           effectiveControlPosition === "end" && "flex-row-reverse justify-end",
@@ -328,10 +335,12 @@ const RadioItem = forwardRef<HTMLButtonElement, RadioItemProps>(
       >
         <BaseRadio.Root
           ref={ref}
+          data-kumo-component="Radio"
+          data-kumo-part="item"
           value={value}
           disabled={disabled}
           className={cn(
-            "relative flex h-4 w-4 items-center justify-center rounded-full border-0 bg-kumo-base ring focus:outline-none after:absolute after:-inset-x-3 after:-inset-y-2",
+            "relative mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-0 bg-kumo-base ring focus:outline-none after:absolute after:-inset-x-3 after:-inset-y-2",
             variant === "error" ? "ring-kumo-danger" : "ring-kumo-line",
             !disabled &&
               variant !== "error" &&

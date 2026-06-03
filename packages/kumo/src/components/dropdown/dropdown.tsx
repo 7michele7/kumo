@@ -1,6 +1,7 @@
 import { Menu as DropdownMenuPrimitive } from "@base-ui/react/menu";
 import * as React from "react";
 import { cn } from "../../utils/cn";
+import { resolveVariant } from "../../utils/resolve-variant";
 import { useLinkComponent } from "../../utils/link-provider";
 import {
   usePortalContainer,
@@ -48,7 +49,7 @@ export interface KumoDropdownVariantsProps {
 export function dropdownVariants({
   variant = KUMO_DROPDOWN_DEFAULT_VARIANTS.variant,
 }: KumoDropdownVariantsProps = {}) {
-  return cn(KUMO_DROPDOWN_VARIANTS.variant[variant].classes);
+  return cn(resolveVariant(KUMO_DROPDOWN_VARIANTS.variant, variant, KUMO_DROPDOWN_DEFAULT_VARIANTS.variant).classes);
 }
 
 const DropdownMenuSubTrigger = React.forwardRef<
@@ -62,6 +63,8 @@ const DropdownMenuSubTrigger = React.forwardRef<
 >(({ className, inset, children, icon: IconComponent, ...props }, ref) => (
   <DropdownMenuPrimitive.SubmenuTrigger
     ref={ref}
+    data-kumo-component="DropdownMenu"
+    data-kumo-part="submenu-trigger"
     className={cn(
       "flex cursor-default items-center rounded-sm text-base outline-hidden select-none", // base styles
       "px-2 py-1.5", // spacing
@@ -236,6 +239,8 @@ const DropdownMenuItem = React.forwardRef<
     return (
       <DropdownMenuPrimitive.Item
         ref={ref}
+        data-kumo-component="DropdownMenu"
+        data-kumo-part="item"
         className={cn(
           "relative flex cursor-default items-center rounded-md px-2 py-1.5 text-base outline-hidden select-none focus:text-kumo-default focus:ring-kumo-focus/50 focus-visible:ring-2 focus-visible:ring-kumo-brand data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-kumo-overlay",
           inset && "pl-8",
@@ -299,6 +304,8 @@ const DropdownMenuLinkItem = React.forwardRef<
     return (
       <DropdownMenuPrimitive.LinkItem
         ref={ref}
+        data-kumo-component="DropdownMenu"
+        data-kumo-part="link-item"
         className={cn(
           "relative flex cursor-default items-center rounded-md px-2 py-1.5 text-base outline-hidden select-none",
           "focus:text-kumo-default focus:ring-kumo-focus/50 focus-visible:ring-2 focus-visible:ring-kumo-brand data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-kumo-overlay",
@@ -324,6 +331,8 @@ const DropdownMenuCheckboxItem = React.forwardRef<
 >(({ className, children, checked, ...props }, ref) => (
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
+    data-kumo-component="DropdownMenu"
+    data-kumo-part="checkbox-item"
     className={cn(
       "relative flex cursor-default items-center rounded-sm py-1.5 pr-2 pl-8 text-base outline-hidden transition-colors select-none focus:bg-kumo-tint focus:text-kumo-default focus:ring-kumo-focus/50 focus-visible:ring-2 focus-visible:ring-kumo-brand data-disabled:pointer-events-none data-disabled:opacity-50",
       className,
@@ -392,6 +401,8 @@ const DropdownMenuRadioItem = React.forwardRef<
 >(({ className, children, inset, icon: IconComponent, ...props }, ref) => (
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
+    data-kumo-component="DropdownMenu"
+    data-kumo-part="radio-item"
     className={cn(
       "relative flex cursor-default items-center rounded-md px-2 py-1.5 text-base outline-hidden select-none",
       "data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-kumo-tint",

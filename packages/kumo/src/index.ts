@@ -133,6 +133,7 @@ export {
   ToastProvider,
   Toast,
   useKumoToastManager,
+  createKumoToastManager,
 } from "./components/toast";
 export { Tooltip, TooltipProvider } from "./components/tooltip";
 export {
@@ -222,7 +223,6 @@ export {
   type CloudflareLogoSvgVariant,
   type CloudflareLogoSvgColor,
 } from "./components/cloudflare-logo";
-
 // DatePicker
 export {
   DatePicker,
@@ -235,9 +235,14 @@ export { Flow } from "./components/flow";
 export {
   Chart,
   ChartPalette,
+  SankeyChart,
   TimeseriesChart,
   ChartLegend,
   type KumoChartOption,
+  type SankeyChartProps,
+  type SankeyNodeData,
+  type SankeyLinkData,
+  type SankeyTooltipParams,
 } from "./components/chart";
 export {
   Autocomplete,
@@ -258,17 +263,14 @@ export {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuAction,
   SidebarMenuBadge,
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
   SidebarSeparator,
-  SidebarInput,
   SidebarTrigger,
   SidebarRail,
   SidebarResizeHandle,
@@ -276,10 +278,13 @@ export {
   SidebarCollapsible,
   SidebarCollapsibleTrigger,
   SidebarCollapsibleContent,
+  SidebarSlidingViews,
+  SidebarSlidingView,
   useSidebar,
   KUMO_SIDEBAR_VARIANTS,
   KUMO_SIDEBAR_DEFAULT_VARIANTS,
   KUMO_SIDEBAR_STYLING,
+  type SidebarState,
   type SidebarSide,
   type SidebarVariant,
   type SidebarCollapsible as SidebarCollapsibleType,
@@ -289,7 +294,6 @@ export {
   type SidebarMenuButtonSize,
   type SidebarMenuButtonProps,
   type SidebarMenuSubButtonProps,
-  type SidebarInputProps,
 } from "./components/sidebar";
 export {
   TableOfContents,
