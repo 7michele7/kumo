@@ -18,7 +18,13 @@ pnpm add react react-dom @phosphor-icons/react
 
 ## Component Documentation
 
-Kumo includes a built-in CLI for quick component reference:
+Hosted documentation is the fastest way to answer usage and API questions:
+
+- Docs index for agents: <https://kumo-ui.com/llms.txt>
+- Component docs: `https://kumo-ui.com/components/{component}.md`
+- Structured registry: <https://kumo-ui.com/api/component-registry>
+
+Kumo also includes a built-in CLI for quick local component reference:
 
 ```bash
 npx @cloudflare/kumo ls         # List all components

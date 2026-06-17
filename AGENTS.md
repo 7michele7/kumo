@@ -26,7 +26,10 @@ kumo/
 
 | Task                 | Location                                         | Notes                                                    |
 | -------------------- | ------------------------------------------------ | -------------------------------------------------------- |
-| Component API        | `packages/kumo/ai/component-registry.{json,md}`  | Source of truth. Query with `jq` or CLI                  |
+| Usage/API docs       | `https://kumo-ui.com/llms.txt`                   | Start here for user-facing Kumo questions                |
+| Component docs       | `https://kumo-ui.com/components/{name}.md`       | Fast markdown docs with examples and API tables          |
+| Hosted registry      | `https://kumo-ui.com/api/component-registry`     | Structured component metadata                            |
+| Component API        | `packages/kumo/ai/component-registry.{json,md}`  | Local development source of truth. Query with `jq` or CLI |
 | Component source     | `packages/kumo/src/components/{name}/{name}.tsx` | Standard pattern                                         |
 | Blocks (installable) | `packages/kumo/src/blocks/`                      | NOT library exports; installed via CLI                   |
 | Semantic tokens      | `packages/kumo/src/styles/theme-kumo.css`        | AUTO-GENERATED; edit `scripts/theme-generator/config.ts` |
@@ -49,8 +52,10 @@ kumo/
 
 ### Components
 
+- **Docs first for usage questions**: For user-facing Kumo API, installation, styling, component, or block questions, start with `https://kumo-ui.com/llms.txt` or the matching `.md` docs page before searching package files.
 - **Scaffold new**: `pnpm --filter @cloudflare/kumo new:component` (never create manually)
-- **Registry first**: Always check `component-registry.json` before using/modifying a component
+- **Registry/source for development**: Check `component-registry.json` and source files when modifying Kumo itself or verifying implementation details.
+- **Avoid dependency spelunking**: Do not inspect `node_modules/@cloudflare/kumo` for normal usage/API answers unless debugging the installed package version, build output, or package resolution.
 - See `packages/kumo/AGENTS.md` for component conventions (variants, forwardRef, displayName)
 
 ### Imports

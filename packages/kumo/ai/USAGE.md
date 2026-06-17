@@ -2,6 +2,16 @@
 
 > Cloudflare's React component library built on [Base UI](https://base-ui.com) + Tailwind CSS v4.
 
+## Documentation Lookup
+
+For user-facing usage/API questions, start with the hosted docs instead of reading installed package files:
+
+- LLM index: `https://kumo-ui.com/llms.txt`
+- Component docs: `https://kumo-ui.com/components/{component}.md`
+- Structured registry: `https://kumo-ui.com/api/component-registry`
+
+Use `@cloudflare/kumo/ai/component-registry.json` from the installed package only when the exact installed package version matters or when debugging package resolution/build output. In consumer projects, use `pnpm exec kumo doc <ComponentName>` or `npx @cloudflare/kumo doc <ComponentName>` instead of bare `kumo`.
+
 ## Quick Start
 
 ### CSS setup (required)
@@ -192,7 +202,13 @@ Some components accept an `as` prop or Base UI's `render` prop:
 
 ## Full Registry
 
-For complete prop details, variant values, Tailwind classes, and code examples for every component, see:
+For complete prop details, variant values, Tailwind classes, and code examples for every component, prefer the hosted registry:
+
+```
+https://kumo-ui.com/api/component-registry
+```
+
+The same structured metadata is also included in the package for version-specific debugging:
 
 ```
 @cloudflare/kumo/ai/component-registry.json

@@ -35,8 +35,11 @@ kumo/
 
 | Task                     | Location                                        | Notes                                                                      |
 | ------------------------ | ----------------------------------------------- | -------------------------------------------------------------------------- |
-| Component implementation | `src/components/{name}/{name}.tsx`              | Always check registry first                                                |
-| Component API reference  | `ai/component-registry.json`                    | Source of truth for props/variants                                         |
+| Usage/API docs           | `https://kumo-ui.com/llms.txt`                  | Start here for user-facing Kumo questions                                  |
+| Component docs           | `https://kumo-ui.com/components/{name}.md`      | Fast markdown docs with examples and API tables                            |
+| Hosted registry          | `https://kumo-ui.com/api/component-registry`    | Structured component metadata                                              |
+| Component implementation | `src/components/{name}/{name}.tsx`              | Use for implementation changes                                             |
+| Component API reference  | `ai/component-registry.json`                    | Local development source of truth for props/variants                       |
 | Variant definitions      | `KUMO_{NAME}_VARIANTS` export in component file | Machine-readable + lint-enforced                                           |
 | CLI commands             | `src/command-line/commands/`                    | `ls`, `doc`, `add`, `blocks`, `init`, `migrate`                            |
 | Catalog runtime          | `src/catalog/`                                  | JSON pointer resolution, visibility conditions                             |
@@ -47,6 +50,14 @@ kumo/
 | Registry codegen         | `scripts/component-registry/index.ts`           | 13 sub-modules; pipeline: discovery → cache → type extraction → enrichment |
 
 ## CONVENTIONS
+
+### Agent Lookup Order
+
+- For user-facing Kumo usage, installation, styling, component, or block questions, start with `https://kumo-ui.com/llms.txt` or the matching `.md` docs page.
+- Use the hosted registry at `https://kumo-ui.com/api/component-registry` for structured metadata when a docs page is not enough.
+- Use local `ai/component-registry.json` and `src/components/{name}/{name}.tsx` when modifying Kumo itself or verifying implementation details.
+- Do not inspect `node_modules/@cloudflare/kumo` for normal usage/API answers unless debugging the installed package version, build output, or package resolution.
+- In consumer projects, prefer `pnpm exec kumo doc <ComponentName>` or `npx @cloudflare/kumo doc <ComponentName>` over bare `kumo`.
 
 ### Build System
 
