@@ -79,3 +79,26 @@ export function SensitiveInputStatesDemo() {
     </div>
   );
 }
+
+export function SensitiveInputLocalizationDemo() {
+  return (
+    <div className="w-80">
+      <SensitiveInput
+        label="Clé API"
+        defaultValue="sk_live_abc123xyz789"
+        labels={{
+          clickToReveal: "Cliquer pour afficher",
+          revealValue: "Afficher la valeur",
+          hideValue: "Masquer la valeur",
+          copy: "Copier",
+          copyToClipboard: "Copier dans le presse-papiers",
+          copied: "Copié",
+          valueRevealed: "Valeur affichée",
+          valueHidden: "Valeur masquée",
+          copiedToClipboard: "Copié dans le presse-papiers",
+          revealInstruction: "Appuyez sur Entrée ou Espace pour afficher.",
+        }}
+      />
+    </div>
+  );
+}

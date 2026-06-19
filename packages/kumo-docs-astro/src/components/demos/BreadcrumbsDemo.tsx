@@ -61,3 +61,23 @@ export function BreadcrumbsWithClipboardDemo() {
     </Breadcrumbs>
   );
 }
+
+export function BreadcrumbsLocalizedDemo() {
+  return (
+    <Breadcrumbs
+      labels={{
+        navigation: "Ruta de navegación",
+        copyAction: "Copiar",
+        copyTooltip: "Haz clic para copiar",
+        copiedFeedback: "Copiado",
+      }}
+    >
+      <Breadcrumbs.Link href="#">Inicio</Breadcrumbs.Link>
+      <Breadcrumbs.Separator />
+      <Breadcrumbs.Link href="#">Documentación</Breadcrumbs.Link>
+      <Breadcrumbs.Separator />
+      <Breadcrumbs.Current>Migas de pan</Breadcrumbs.Current>
+      <Breadcrumbs.Clipboard text="#migas-de-pan" />
+    </Breadcrumbs>
+  );
+}

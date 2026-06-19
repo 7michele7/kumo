@@ -18,12 +18,10 @@ import {
 import { LayerCard } from "../layer-card";
 import { Loader } from "../loader";
 import { cn } from "../../utils";
-import {
-  usePortalContainer,
-  type PortalContainer,
-} from "../../utils/portal-provider";
+import { usePortalContainer } from "../../utils/portal-provider";
 import type {
   HighlightRange,
+  CommandPaletteDialogProps,
   CommandPaletteRootProps,
   CommandPaletteInputProps,
   CommandPaletteListProps,
@@ -35,6 +33,9 @@ import type {
   CommandPaletteFooterProps,
   CommandPaletteResultItemProps,
 } from "./types";
+
+const DEFAULT_DIALOG_TITLE = "Command palette";
+const DEFAULT_LOADING_LABEL = "Loading results";
 
 /**
  * CommandPalette - A composable command palette component for Kumo
@@ -53,6 +54,7 @@ import type {
  * <CommandPalette.Root
  *   open={open}
  *   onOpenChange={setOpen}
+ *   dialogTitle="Search documentation"
  *   items={results}
  *   value={searchTerm}
  *   onValueChange={setSearchTerm}
@@ -93,30 +95,6 @@ interface DialogContextValue {
 const DialogContext = createContext<DialogContextValue>({});
 
 /**
- * Props for the Dialog component
- */
-interface DialogProps {
-  /** Whether the dialog is open */
-  open: boolean;
-  /** Callback when the open state changes */
-  onOpenChange: (open: boolean) => void;
-  /**
-   * Optional callback when backdrop is clicked.
-   * Receives the mouse event for position tracking (e.g., for ripple effects).
-   * If not provided, backdrop click calls onOpenChange(false).
-   */
-  onBackdropClick?: (e: React.MouseEvent) => void;
-  /** Child content - typically one or more Panel components */
-  children: React.ReactNode;
-  /**
-   * Container element for the portal. Use this to render the command palette inside
-   * a Shadow DOM or custom container. Overrides `KumoPortalProvider` context.
-   * @default document.body (or KumoPortalProvider container if set)
-   */
-  container?: PortalContainer;
-}
-
-/**
  * Dialog component - Modal wrapper for command palette content.
  *
  * Use this when you need a dialog that can swap between different Panel contents
@@ -124,7 +102,11 @@ interface DialogProps {
  *
  * @example
  * ```tsx
- * <CommandPalette.Dialog open={open} onOpenChange={setOpen}>
+ * <CommandPalette.Dialog
+ *   open={open}
+ *   onOpenChange={setOpen}
+ *   dialogTitle="Search documentation"
+ * >
  *   {showDrillDown ? (
  *     <ZonePicker />
  *   ) : (
@@ -140,10 +122,12 @@ function Dialog({
   onOpenChange,
   onBackdropClick,
   children,
+  dialogTitle,
   container: containerProp,
-}: DialogProps) {
+}: CommandPaletteDialogProps) {
   const contextContainer = usePortalContainer();
   const container = containerProp ?? contextContainer ?? undefined;
+  const accessibleTitle = dialogTitle?.trim() || DEFAULT_DIALOG_TITLE;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (onBackdropClick) {
@@ -179,6 +163,9 @@ function Dialog({
             } as CSSProperties
           }
         >
+          <DialogBase.Title className="sr-only">
+            {accessibleTitle}
+          </DialogBase.Title>
           <DialogContext.Provider value={{ onClose: handleClose }}>
             {children}
           </DialogContext.Provider>
@@ -205,6 +192,7 @@ function Root<TGroup, TItem = TGroup>({
   onOpenChange,
   onBackdropClick,
   children,
+  dialogTitle,
   items,
   value,
   onValueChange,
@@ -220,6 +208,7 @@ function Root<TGroup, TItem = TGroup>({
       open={open}
       onOpenChange={onOpenChange}
       onBackdropClick={onBackdropClick}
+      dialogTitle={dialogTitle}
       container={container}
     >
       <Panel
@@ -274,10 +263,11 @@ function InputHeader({
 const List = forwardRef<
   HTMLDivElement,
   CommandPaletteListProps & { className?: string }
->(function List({ children, className }, ref) {
+>(function List({ children, className, busy = false }, ref) {
   return (
     <div
       ref={ref}
+      aria-busy={busy || undefined}
       className={cn(
         "relative min-h-0 flex-1 overflow-y-auto rounded-b-lg bg-kumo-base px-2 py-2 scroll-py-2 ring-1 ring-kumo-hairline",
         className,
@@ -371,10 +361,8 @@ function Item<T>({
  */
 function Empty({ children }: CommandPaletteEmptyProps) {
   return (
-    <Autocomplete.Empty>
-      <div className="p-8 text-center">
-        <p className="text-kumo-subtle">{children ?? "No results found"}</p>
-      </div>
+    <Autocomplete.Empty className="p-8 text-center">
+      <p className="text-kumo-subtle">{children ?? "No results found"}</p>
     </Autocomplete.Empty>
   );
 }
@@ -384,10 +372,26 @@ function Empty({ children }: CommandPaletteEmptyProps) {
  *
  * Centered loading spinner using Kumo Loader.
  */
-function Loading({ children }: CommandPaletteLoadingProps) {
+function Loading({ children, label }: CommandPaletteLoadingProps) {
+  const accessibleLabel =
+    label ?? (children == null ? DEFAULT_LOADING_LABEL : undefined);
+
   return (
-    <div className="flex items-center justify-center p-8">
-      {children ?? <Loader size={24} />}
+    <div
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      aria-atomic="true"
+      className="flex items-center justify-center p-8"
+    >
+      {children ?? (
+        <span aria-hidden="true">
+          <Loader size={24} />
+        </span>
+      )}
+      {accessibleLabel ? (
+        <span className="sr-only">{accessibleLabel}</span>
+      ) : null}
     </div>
   );
 }

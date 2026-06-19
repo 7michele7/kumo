@@ -209,6 +209,13 @@ interface SearchDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const SEARCH_DIALOG_MESSAGES = {
+  dialogTitle: "Search Kumo documentation",
+  loadError: "Failed to load search index",
+  emptyIdle: "Type to search docs",
+  placeholder: "Search docs...",
+} as const;
+
 /** Build URL path from component type and name */
 function getComponentUrl(type: string, name: string): string {
   const slug =
@@ -344,7 +351,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
         setError(null);
       } catch (err) {
         console.error("Failed to load component registry:", err);
-        setError("Failed to load search index");
+        setError(SEARCH_DIALOG_MESSAGES.loadError);
       } finally {
         setLoading(false);
       }
@@ -430,6 +437,10 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     0,
   );
   const isSearching = query.trim().length > 0;
+  const resultStatus =
+    !loading && !error && hasResults
+      ? `${totalResults} result${totalResults === 1 ? "" : "s"}`
+      : "";
 
   return (
     <CommandPalette.Root<SearchGroup, SearchItem>
@@ -441,10 +452,11 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
       itemToStringValue={(group: SearchGroup) => group.label}
       onSelect={handleSelect}
       getSelectableItems={getSelectableItems}
+      dialogTitle={SEARCH_DIALOG_MESSAGES.dialogTitle}
       filter={() => true}
     >
       <CommandPalette.Input
-        placeholder="Search docs..."
+        placeholder={SEARCH_DIALOG_MESSAGES.placeholder}
         leading={
           <MagnifyingGlassIcon
             className="h-4 w-4 text-kumo-subtle"
@@ -456,14 +468,14 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
         {loading ? (
           <CommandPalette.Loading />
         ) : error ? (
-          <div className="p-8 text-center">
+          <div role="alert" className="p-8 text-center">
             <p className="text-kumo-subtle">{error}</p>
           </div>
         ) : !hasResults ? (
           <CommandPalette.Empty>
             {query.trim()
               ? `No results found for "${query}"`
-              : "Type to search docs"}
+              : SEARCH_DIALOG_MESSAGES.emptyIdle}
           </CommandPalette.Empty>
         ) : (
           <CommandPalette.Results>
@@ -515,9 +527,9 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
       </CommandPalette.List>
       <CommandPalette.Footer>
         <span className="text-kumo-subtle">
-          {hasResults
-            ? `${totalResults} result${totalResults === 1 ? "" : "s"}`
-            : ""}
+          <span role="status" aria-live="polite" aria-atomic="true">
+            {resultStatus}
+          </span>
         </span>
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1">
