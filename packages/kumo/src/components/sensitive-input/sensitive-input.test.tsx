@@ -133,52 +133,56 @@ describe("SensitiveInput", () => {
     vi.stubGlobal("navigator", navigatorWithClipboard);
     const labels: SensitiveInputLabels = {
       maskedValue: "••••",
-      clickToReveal: "Cliquer pour afficher",
-      revealValue: "Afficher la valeur",
-      hideValue: "Masquer la valeur",
-      copy: "Copier",
-      copyToClipboard: "Copier dans le presse-papiers",
-      copied: "Copié",
-      valueRevealed: "Valeur affichée",
-      valueHidden: "Valeur masquée",
-      copiedToClipboard: "Copié dans le presse-papiers",
-      revealInstruction: "Appuyez sur Entrée ou Espace pour afficher.",
+      clickToReveal: "Clique para revelar",
+      revealValue: "Revelar valor",
+      hideValue: "Ocultar valor",
+      copy: "Copiar",
+      copyToClipboard: "Copiar para a área de transferência",
+      copied: "Copiado",
+      valueRevealed: "Valor revelado",
+      valueHidden: "Valor oculto",
+      copiedToClipboard: "Copiado para a área de transferência",
+      revealInstruction: "Pressione Enter ou Espaço para revelar.",
     };
 
     render(
       <SensitiveInput
-        label="Clé API"
+        label="Chave de API"
         defaultValue="secret-value"
         labels={labels}
       />,
     );
 
     expect(screen.getByText("••••")).toBeTruthy();
-    expect(screen.getByText("Cliquer pour afficher")).toBeTruthy();
-    expect(screen.getByText("Valeur masquée")).toBeTruthy();
+    expect(screen.getByText("Clique para revelar")).toBeTruthy();
+    expect(screen.getByText("Valor oculto")).toBeTruthy();
 
     await user.click(
-      screen.getByRole("button", { name: "Afficher la valeur: Clé API" }),
+      screen.getByRole("button", { name: "Revelar valor: Chave de API" }),
     );
     expect(
-      screen.getByRole("textbox", { name: "Clé API" }).getAttribute("type"),
+      screen.getByRole("textbox", { name: "Chave de API" }).getAttribute("type"),
     ).toBe("text");
-    expect(screen.getByText("Valeur affichée")).toBeTruthy();
+    expect(screen.getByText("Valor revelado")).toBeTruthy();
 
     await user.click(
-      screen.getByRole("button", { name: "Masquer la valeur: Clé API" }),
+      screen.getByRole("button", { name: "Ocultar valor: Chave de API" }),
     );
-    expect(screen.getByText("Valeur masquée")).toBeTruthy();
+    expect(screen.getByText("Valor oculto")).toBeTruthy();
 
     await user.click(
-      screen.getByRole("button", { name: "Copier dans le presse-papiers" }),
+      screen.getByRole("button", {
+        name: "Copiar para a área de transferência",
+      }),
     );
 
     await waitFor(() => {
       expect(writeText).toHaveBeenCalledWith("secret-value");
     });
-    expect(screen.getByRole("button", { name: "Copié" })).toBeTruthy();
-    expect(screen.getByText("Copié dans le presse-papiers")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Copiado" })).toBeTruthy();
+    expect(
+      screen.getByText("Copiado para a área de transferência"),
+    ).toBeTruthy();
   });
 
   it("supports keyboard reveal and hide", async () => {

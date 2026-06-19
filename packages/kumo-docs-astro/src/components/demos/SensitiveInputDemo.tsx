@@ -84,19 +84,19 @@ export function SensitiveInputLocalizationDemo() {
   return (
     <div className="w-80">
       <SensitiveInput
-        label="Clé API"
+        label="Chave de API"
         defaultValue="sk_live_abc123xyz789"
         labels={{
-          clickToReveal: "Cliquer pour afficher",
-          revealValue: "Afficher la valeur",
-          hideValue: "Masquer la valeur",
-          copy: "Copier",
-          copyToClipboard: "Copier dans le presse-papiers",
-          copied: "Copié",
-          valueRevealed: "Valeur affichée",
-          valueHidden: "Valeur masquée",
-          copiedToClipboard: "Copié dans le presse-papiers",
-          revealInstruction: "Appuyez sur Entrée ou Espace pour afficher.",
+          clickToReveal: "Clique para revelar",
+          revealValue: "Revelar valor",
+          hideValue: "Ocultar valor",
+          copy: "Copiar",
+          copyToClipboard: "Copiar para a área de transferência",
+          copied: "Copiado",
+          valueRevealed: "Valor revelado",
+          valueHidden: "Valor oculto",
+          copiedToClipboard: "Copiado para a área de transferência",
+          revealInstruction: "Pressione Enter ou Espaço para revelar.",
         }}
       />
     </div>

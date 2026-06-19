@@ -464,23 +464,23 @@ describe("SankeyChart", () => {
           links={baseLinks}
           onNodeClick={onNodeClick}
           onLinkClick={onLinkClick}
-          keyboardActionsLabel="Acciones del diagrama"
-          getNodeActionLabel={(node) => `Elegir ${node.name}`}
+          keyboardActionsLabel="Ações do diagrama"
+          getNodeActionLabel={(node) => `Escolher ${node.name}`}
           getLinkActionLabel={(_link, { sourceName, targetName }) =>
-            `Elegir enlace ${sourceName} a ${targetName}`
+            `Escolher conexão de ${sourceName} para ${targetName}`
           }
         />,
       );
 
       expect(
-        screen.getByRole("group", { name: "Acciones del diagrama" }),
+        screen.getByRole("group", { name: "Ações do diagrama" }),
       ).toBeTruthy();
       expect(
-        screen.getByRole("button", { name: "Elegir Source A" }),
+        screen.getByRole("button", { name: "Escolher Source A" }),
       ).toBeTruthy();
       expect(
         screen.getByRole("button", {
-          name: "Elegir enlace Source A a Target X",
+          name: "Escolher conexão de Source A para Target X",
         }),
       ).toBeTruthy();
     });

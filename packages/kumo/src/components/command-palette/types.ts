@@ -212,6 +212,11 @@ export interface CommandPaletteResultItemProps<T = unknown> {
 /**
  * Props for the CommandPalette.Input component - search input inside the palette.
  *
+ * This input does not render a visible label by default. Provide a localized
+ * `aria-label` when there is no visible label, or associate custom visible
+ * label text with `htmlFor`/`id` or `aria-labelledby`. Placeholder text is not
+ * a substitute for a label.
+ *
  * Extends standard HTML input attributes so you can pass props like
  * `autoComplete`, `autoCorrect`, `autoCapitalize`, `spellCheck`, `data-*`, etc.
  */

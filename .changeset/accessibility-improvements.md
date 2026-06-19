@@ -6,7 +6,8 @@ Improve accessibility across Kumo components, charts, and docs.
 
 ### Components
 
-- Improve CommandPalette screen reader context with a dialog title, busy, loading, and empty-state announcements, and localizable labels for status and action text.
+- Improve CommandPalette screen reader context with a dialog title, named inputs, busy, loading, and empty-state announcements, localizable labels for status and action text, and decorative icons hidden from assistive technology.
+- Hide Banner icons from assistive technology because they duplicate the surrounding banner text.
 - Improve SensitiveInput semantics with localizable labels and status text, warnings for missing or generic primary names, clearer warning and error text, compact hit areas that do not change the visual layout where possible, and decorative icons that are hidden from assistive technology.
 - Add accessible-name warnings for Switch, associate Switch groups with descriptions and errors, announce invalid and error states, and expand Switch hit areas without changing compact visuals where possible.
 - Improve Button icon-only guidance with accessible-name warnings, decorative icon handling, and compact hit areas that preserve the existing visual size where possible.

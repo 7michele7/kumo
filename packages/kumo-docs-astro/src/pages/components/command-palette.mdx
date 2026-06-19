@@ -62,6 +62,13 @@ import { CommandPalette } from "@cloudflare/kumo/components/command-palette";
     describes the palette's purpose, such as "Search documentation".
   </p>
   <p>
+    `CommandPalette.Input` does not render a visible `Label` by default.
+    Placeholder text is only a hint and should not be used as the accessible
+    name, so provide localized `aria-label` text when there is no visible label,
+    or associate custom visible label text with `htmlFor`/`id` or
+    `aria-labelledby` instead of adding a redundant `aria-label`.
+  </p>
+  <p>
     `CommandPalette.Loading` and `CommandPalette.Empty` are announced as polite
     status updates. Localize loading text with the `label` prop, or replace the
     loading and empty content with localized `children`. When your app owns an
@@ -102,7 +109,10 @@ export default function Example() {
         itemToStringValue={(item) => item.title}
         getSelectableItems={(items) => items}
       >
-        <CommandPalette.Input placeholder="Search..." />
+        <CommandPalette.Input
+          aria-label="Search actions"
+          placeholder="Search..."
+        />
         <CommandPalette.List>
           <CommandPalette.Results>
             {(item) => (
@@ -217,7 +227,13 @@ export default function Example() {
 
 ### CommandPalette.Input
 
-<p>Search input field with auto-focus and keyboard handling.</p>
+<p>
+  Search input field with auto-focus and keyboard handling. It does not render a
+  visible `Label` by default. Provide a localized accessible name with
+  `aria-label` when there is no visible label, or associate custom visible label
+  text with `htmlFor`/`id` or `aria-labelledby`; placeholder text is not a
+  substitute for a label.
+</p>
 
 ### CommandPalette.List
 

@@ -211,6 +211,7 @@ interface SearchDialogProps {
 
 const SEARCH_DIALOG_MESSAGES = {
   dialogTitle: "Search Kumo documentation",
+  inputLabel: "Search documentation",
   loadError: "Failed to load search index",
   emptyIdle: "Type to search docs",
   placeholder: "Search docs...",
@@ -302,13 +303,41 @@ function asSearchResults(items: SearchItem[]): SearchGroup[] {
 function getTypeIcon(type: "component" | "block" | "layout" | "page") {
   switch (type) {
     case "block":
-      return <StackIcon size={16} weight="duotone" />;
+      return (
+        <StackIcon
+          aria-hidden="true"
+          focusable="false"
+          size={16}
+          weight="duotone"
+        />
+      );
     case "layout":
-      return <SquaresFourIcon size={16} weight="duotone" />;
+      return (
+        <SquaresFourIcon
+          aria-hidden="true"
+          focusable="false"
+          size={16}
+          weight="duotone"
+        />
+      );
     case "page":
-      return <BookOpenIcon size={16} weight="duotone" />;
+      return (
+        <BookOpenIcon
+          aria-hidden="true"
+          focusable="false"
+          size={16}
+          weight="duotone"
+        />
+      );
     default:
-      return <CubeIcon size={16} weight="duotone" />;
+      return (
+        <CubeIcon
+          aria-hidden="true"
+          focusable="false"
+          size={16}
+          weight="duotone"
+        />
+      );
   }
 }
 
@@ -456,9 +485,12 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
       filter={() => true}
     >
       <CommandPalette.Input
+        aria-label={SEARCH_DIALOG_MESSAGES.inputLabel}
         placeholder={SEARCH_DIALOG_MESSAGES.placeholder}
         leading={
           <MagnifyingGlassIcon
+            aria-hidden="true"
+            focusable="false"
             className="h-4 w-4 text-kumo-subtle"
             weight="bold"
           />

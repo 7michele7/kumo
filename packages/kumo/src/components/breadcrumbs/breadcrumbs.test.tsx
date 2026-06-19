@@ -99,30 +99,30 @@ describe("Breadcrumbs", () => {
     render(
       <Breadcrumb
         labels={{
-          navigation: "Ruta de navegación",
+          navigation: "Trilha de navegação",
           copyAction: "Copiar",
-          copyTooltip: "Haz clic para copiar",
+          copyTooltip: "Clique para copiar",
           copiedFeedback: "Copiado",
         }}
       >
-        <Breadcrumb.Link href="#">Inicio</Breadcrumb.Link>
+        <Breadcrumb.Link href="#">Início</Breadcrumb.Link>
         <Breadcrumb.Separator />
-        <Breadcrumb.Current>Documentación</Breadcrumb.Current>
-        <Breadcrumb.Clipboard text="#documentacion" />
+        <Breadcrumb.Current>Documentação</Breadcrumb.Current>
+        <Breadcrumb.Clipboard text="#documentacao" />
       </Breadcrumb>,
     );
 
     expect(
-      screen.getByRole("navigation", { name: "Ruta de navegación" }),
+      screen.getByRole("navigation", { name: "Trilha de navegação" }),
     ).toBeTruthy();
 
     const copyButton = screen.getAllByRole("button", { name: "Copiar" })[0];
     await user.hover(copyButton);
-    expect(await screen.findByText("Haz clic para copiar")).toBeTruthy();
+    expect(await screen.findByText("Clique para copiar")).toBeTruthy();
 
     await user.click(copyButton);
 
-    expect(writeText).toHaveBeenCalledWith("#documentacion");
+    expect(writeText).toHaveBeenCalledWith("#documentacao");
     await waitFor(() => expect(screen.getByText("Copiado")).toBeTruthy());
   });
 
@@ -133,29 +133,29 @@ describe("Breadcrumbs", () => {
     render(
       <Breadcrumb
         labels={{
-          navigation: "Ruta de navegación",
+          navigation: "Trilha de navegação",
           copyAction: "Copiar",
           copiedFeedback: "Copiado",
         }}
       >
-        <Breadcrumb.Current>Página actual</Breadcrumb.Current>
+        <Breadcrumb.Current>Página atual</Breadcrumb.Current>
         <Breadcrumb.Clipboard
-          text="#actual"
+          text="#atual"
           labels={{
-            copyAction: "Copiar enlace",
-            copiedFeedback: "Enlace copiado",
+            copyAction: "Copiar link",
+            copiedFeedback: "Link copiado",
           }}
         />
       </Breadcrumb>,
     );
 
     const copyButton = screen.getAllByRole("button", {
-      name: "Copiar enlace",
+      name: "Copiar link",
     })[0];
     await user.click(copyButton);
 
     await waitFor(() =>
-      expect(screen.getByText("Enlace copiado")).toBeTruthy(),
+      expect(screen.getByText("Link copiado")).toBeTruthy(),
     );
   });
 });

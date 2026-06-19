@@ -66,18 +66,18 @@ export function BreadcrumbsLocalizedDemo() {
   return (
     <Breadcrumbs
       labels={{
-        navigation: "Ruta de navegación",
+        navigation: "Trilha de navegação",
         copyAction: "Copiar",
-        copyTooltip: "Haz clic para copiar",
+        copyTooltip: "Clique para copiar",
         copiedFeedback: "Copiado",
       }}
     >
-      <Breadcrumbs.Link href="#">Inicio</Breadcrumbs.Link>
+      <Breadcrumbs.Link href="#">Início</Breadcrumbs.Link>
       <Breadcrumbs.Separator />
-      <Breadcrumbs.Link href="#">Documentación</Breadcrumbs.Link>
+      <Breadcrumbs.Link href="#">Documentação</Breadcrumbs.Link>
       <Breadcrumbs.Separator />
-      <Breadcrumbs.Current>Migas de pan</Breadcrumbs.Current>
-      <Breadcrumbs.Clipboard text="#migas-de-pan" />
+      <Breadcrumbs.Current>Navegação estrutural</Breadcrumbs.Current>
+      <Breadcrumbs.Clipboard text="#navegacao-estrutural" />
     </Breadcrumbs>
   );
 }
