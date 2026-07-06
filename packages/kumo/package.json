@@ -68,6 +68,10 @@
       "types": "./dist/src/components/collapsible/index.d.ts",
       "import": "./dist/components/collapsible.js"
     },
+    "./components/stepper": {
+      "types": "./dist/src/components/stepper/index.d.ts",
+      "import": "./dist/components/stepper.js"
+    },
     "./components/combobox": {
       "types": "./dist/src/components/combobox/index.d.ts",
       "import": "./dist/components/combobox.js"

@@ -322,6 +322,22 @@ export {
   KUMO_TABLE_OF_CONTENTS_DEFAULT_VARIANTS,
   type KumoTableOfContentsState,
 } from "./components/table-of-contents";
+export {
+  Stepper,
+  useStepper,
+  useStep,
+  stepperVariants,
+  type StepperProps,
+  type StepperRootProps,
+  type StepperOrientation,
+  type StepProps,
+  type StepHeaderProps,
+  type StepPanelProps,
+  type StepIndicatorProps,
+  type StepperFooterProps,
+  type StepperBackProps,
+  type StepperNextProps,
+} from "./components/stepper";
 // PLOP_INJECT_EXPORT
 
 // Utils
