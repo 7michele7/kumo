@@ -1,5 +1,21 @@
 # @cloudflare/kumo
 
+## 2.8.0
+
+### Minor Changes
+
+- 8f2c40b: Rewrite `Flow` to use computed layout over relying on DOM layout.
+
+  `Flow` now measures node sizes, reconstructs the flow tree, and computes node positions and connector paths from that derived state instead of chaining DOM rect reads. This keeps connectors aligned through resize and scroll changes, supports nested flow structures more predictably, and makes anchor-based connector placement follow the anchor midpoint.
+
+- 33cb988: Add vertical reference markers to TimeseriesChart.
+- 0562dd1: Add horizontal threshold lines to TimeseriesChart.
+
+### Patch Changes
+
+- 0e440d4: Keep the mobile Sidebar open when focus moves to portaled interactive content.
+- 67061e1: Disable Sidebar.MenuButton tooltips while the sidebar is expanded or peeking.
+
 ## 2.7.0
 
 ### Minor Changes

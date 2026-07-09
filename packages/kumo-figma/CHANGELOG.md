@@ -1,5 +1,16 @@
 # @cloudflare/figma-plugin
 
+## 0.3.42
+
+### Patch Changes
+
+- Updated dependencies [8f2c40b]
+- Updated dependencies [0e440d4]
+- Updated dependencies [67061e1]
+- Updated dependencies [33cb988]
+- Updated dependencies [0562dd1]
+  - @cloudflare/kumo@2.8.0
+
 ## 0.3.41
 
 ### Patch Changes
