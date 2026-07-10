@@ -1350,6 +1350,8 @@ export interface SidebarMenuSubButtonProps
   active?: boolean;
   /** Navigation URL. When set, renders as a link via LinkProvider. */
   href?: string;
+  /** Link target — only meaningful when `href` is provided. */
+  target?: React.HTMLAttributeAnchorTarget;
 }
 
 /**
@@ -1369,7 +1371,7 @@ export interface SidebarMenuSubButtonProps
 const SidebarMenuSubButton = forwardRef<
   HTMLButtonElement,
   SidebarMenuSubButtonProps
->(({ className, active = false, href, children, ...props }, ref) => {
+>(({ className, active = false, href, target, children, ...props }, ref) => {
   const LinkComponent = useLinkComponent();
   const isInsideMenuSubItem = useContext(MenuSubItemContext);
 
@@ -1404,6 +1406,7 @@ const SidebarMenuSubButton = forwardRef<
         className={cn(buttonClasses, "no-underline!")}
         href={href}
         to={href}
+        target={target}
         data-active={active || undefined}
         data-sidebar="menu-sub-button"
         data-kumo-component="Sidebar"

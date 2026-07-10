@@ -579,6 +579,41 @@ describe("Sidebar.MenuButton", () => {
   });
 });
 
+describe("Sidebar.MenuSubButton", () => {
+  it("should render as link when href provided", () => {
+    render(
+      <TestSidebar defaultOpen>
+        <SidebarContent>
+          <SidebarMenu>
+            <SidebarMenuSubButton href="/observability">
+              Observability
+            </SidebarMenuSubButton>
+          </SidebarMenu>
+        </SidebarContent>
+      </TestSidebar>,
+    );
+    const link = screen.getByText("Observability").closest("a");
+    expect(link).toBeTruthy();
+    expect(link!.getAttribute("href")).toBe("/observability");
+  });
+
+  it("should forward target to the link when href provided", () => {
+    render(
+      <TestSidebar defaultOpen>
+        <SidebarContent>
+          <SidebarMenu>
+            <SidebarMenuSubButton href="https://example.com" target="_self">
+              External
+            </SidebarMenuSubButton>
+          </SidebarMenu>
+        </SidebarContent>
+      </TestSidebar>,
+    );
+    const link = screen.getByText("External").closest("a");
+    expect(link!.getAttribute("target")).toBe("_self");
+  });
+});
+
 // ============================================================================
 // Contained mode
 // ============================================================================
