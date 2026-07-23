@@ -275,7 +275,9 @@ export function SidebarLoadingDemo() {
                   <Sidebar.MenuButton icon={ChartBarIcon}>
                     Analytics
                   </Sidebar.MenuButton>
-                  <Sidebar.MenuButton icon={CodeIcon}>Compute</Sidebar.MenuButton>
+                  <Sidebar.MenuButton icon={CodeIcon}>
+                    Compute
+                  </Sidebar.MenuButton>
                   <Sidebar.MenuButton icon={DatabaseIcon}>
                     Storage
                   </Sidebar.MenuButton>
