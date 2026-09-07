@@ -1012,6 +1012,8 @@ describe("Sidebar scrollToItem", () => {
     el: HTMLElement,
     offsetTop: number,
     height: number,
+    scale = 1,
+    viewportTop = 0,
   ) {
     Object.defineProperty(el, "offsetTop", {
       configurable: true,
@@ -1024,31 +1026,35 @@ describe("Sidebar scrollToItem", () => {
     Object.defineProperty(el, "getBoundingClientRect", {
       configurable: true,
       value: () => ({
-        top: offsetTop,
+        top: viewportTop + offsetTop * scale,
         left: 0,
-        bottom: offsetTop + height,
+        bottom: viewportTop + (offsetTop + height) * scale,
         right: 0,
         width: 0,
-        height,
+        height: height * scale,
         x: 0,
-        y: offsetTop,
+        y: viewportTop + offsetTop * scale,
         toJSON: () => ({}),
       }),
     });
   }
 
-  function stubViewportOrigin(viewport: HTMLDivElement) {
+  function stubViewportOrigin(viewport: HTMLDivElement, scale = 1, top = 0) {
+    Object.defineProperty(viewport, "offsetHeight", {
+      configurable: true,
+      value: viewport.clientHeight,
+    });
     Object.defineProperty(viewport, "getBoundingClientRect", {
       configurable: true,
       value: () => ({
-        top: 0,
+        top,
         left: 0,
-        bottom: viewport.clientHeight,
+        bottom: top + viewport.clientHeight * scale,
         right: 0,
         width: 0,
-        height: viewport.clientHeight,
+        height: viewport.clientHeight * scale,
         x: 0,
-        y: 0,
+        y: top,
         toJSON: () => ({}),
       }),
     });
@@ -1128,6 +1134,74 @@ describe("Sidebar scrollToItem", () => {
 
     await userEvent.click(screen.getByTestId("ctrl"));
     expect(readScrollTop(viewport)).toBe(expectedScrollTop);
+  });
+
+  it.each([
+    ["uses default auto alignment", undefined, 440],
+    ["center-aligns an offscreen item", { align: "center" } as const, 620],
+    ["end-aligns an offscreen item", { align: "end" } as const, 440],
+  ])("%s", async (_, options, expectedScrollTop) => {
+    function Ctrl() {
+      const { scrollItemIntoView } = useSidebar();
+      return (
+        <button
+          type="button"
+          data-testid="ctrl"
+          onClick={() => scrollItemIntoView("target", options)}
+        />
+      );
+    }
+
+    render(
+      <TestSidebar defaultOpen>
+        <SidebarContent>
+          <SidebarMenu>
+            <SidebarMenuButton itemId="target">Target</SidebarMenuButton>
+          </SidebarMenu>
+        </SidebarContent>
+        <Ctrl />
+      </TestSidebar>,
+    );
+
+    const viewport = getViewport();
+    setViewportGeometry(viewport, 2000, 400);
+    stubViewportOrigin(viewport);
+    stubItemGeometry(findItem("target"), 800, 40);
+
+    await userEvent.click(screen.getByTestId("ctrl"));
+    expect(readScrollTop(viewport)).toBe(expectedScrollTop);
+  });
+
+  it("normalizes scaled geometry before start-aligning the target", async () => {
+    function Ctrl() {
+      const { scrollItemIntoView } = useSidebar();
+      return (
+        <button
+          type="button"
+          data-testid="ctrl"
+          onClick={() => scrollItemIntoView("target", { align: "start" })}
+        />
+      );
+    }
+
+    render(
+      <TestSidebar defaultOpen>
+        <SidebarContent>
+          <SidebarMenu>
+            <SidebarMenuButton itemId="target">Target</SidebarMenuButton>
+          </SidebarMenu>
+        </SidebarContent>
+        <Ctrl />
+      </TestSidebar>,
+    );
+
+    const viewport = getViewport();
+    setViewportGeometry(viewport, 2000, 400);
+    stubViewportOrigin(viewport, 0.5, 100);
+    stubItemGeometry(findItem("target"), 800, 40, 0.5, 100);
+
+    await userEvent.click(screen.getByTestId("ctrl"));
+    expect(readScrollTop(viewport)).toBe(800);
   });
 
   it("centers the target when align is 'center'", async () => {

@@ -412,8 +412,13 @@ function SidebarProvider({
       // which walks the ancestor chain and scrolls the document too.
       const targetRect = target.getBoundingClientRect();
       const viewportRect = viewport.getBoundingClientRect();
+      const viewportScaleY =
+        viewport.offsetHeight > 0 && viewportRect.height > 0
+          ? viewportRect.height / viewport.offsetHeight
+          : 1;
       const itemScrollOffset =
-        targetRect.top - viewportRect.top + viewport.scrollTop;
+        (targetRect.top - viewportRect.top) / viewportScaleY +
+        viewport.scrollTop;
 
       let desired: number;
       if (align === "center") {
