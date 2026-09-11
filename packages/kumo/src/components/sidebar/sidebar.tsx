@@ -96,6 +96,7 @@ const SIDEBAR_WIDTH = "16.25rem";
 const SIDEBAR_WIDTH_ICON = "57px";
 const SIDEBAR_EASING = "cubic-bezier(0.77, 0, 0.175, 1)";
 const SIDEBAR_ANIMATION_DURATION_MS = 250;
+const TRANSITION_FALLBACK_GRACE_MS = 50;
 const MOBILE_BREAKPOINT = 768;
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -105,9 +106,11 @@ function useOpenChangeComplete(
   duration: number,
   onComplete?: (open: boolean) => void,
 ) {
+  const enabled = onComplete !== undefined;
   const callbackRef = useRef(onComplete);
   const durationRef = useRef(duration);
   const previousOpenRef = useRef(open);
+  const previousEnabledRef = useRef(enabled);
   const pendingOpenRef = useRef<boolean | undefined>(undefined);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -125,15 +128,31 @@ function useOpenChangeComplete(
   }, []);
 
   useEffect(() => {
-    if (previousOpenRef.current === open) return;
-
+    const openChanged = previousOpenRef.current !== open;
+    const wasEnabled = previousEnabledRef.current;
     previousOpenRef.current = open;
-    if (!callbackRef.current) return;
+    previousEnabledRef.current = enabled;
+    if (!enabled) {
+      pendingOpenRef.current = undefined;
+      clearTimeout(timeoutRef.current);
+      return;
+    }
+    if (!wasEnabled || !openChanged) return;
 
     pendingOpenRef.current = open;
-    timeoutRef.current = setTimeout(complete, durationRef.current);
+    if (
+      durationRef.current === 0 ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      complete();
+      return;
+    }
+    timeoutRef.current = setTimeout(
+      complete,
+      durationRef.current + TRANSITION_FALLBACK_GRACE_MS,
+    );
     return () => clearTimeout(timeoutRef.current);
-  }, [complete, open]);
+  }, [complete, enabled, open]);
 
   return complete;
 }
@@ -552,12 +571,19 @@ function SidebarProvider({
     [state, open, openMobile, isMobile, width, isResizing, isPeeking],
   );
 
-  const currentOpen = isMobile ? openMobile : open;
-  const completeOpenChange = useOpenChangeComplete(
-    currentOpen,
+  const completeDesktopOpenChange = useOpenChangeComplete(
+    open,
     animationDuration,
-    onOpenChangeComplete,
+    isMobile ? undefined : onOpenChangeComplete,
   );
+  const completeMobileOpenChange = useOpenChangeComplete(
+    openMobile,
+    animationDuration,
+    isMobile ? onOpenChangeComplete : undefined,
+  );
+  const completeOpenChange = isMobile
+    ? completeMobileOpenChange
+    : completeDesktopOpenChange;
   const transitionProperty = isMobile ? "transform" : "width";
   const handleOpenTransitionEnd = useCallback(
     (event: React.TransitionEvent<HTMLDivElement>) => {

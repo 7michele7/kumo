@@ -81,11 +81,13 @@ function StateReader() {
   );
 }
 
-function setMobileMatchMedia(matches: boolean) {
+function setMobileMatchMedia(matches: boolean, prefersReducedMotion = false) {
   Object.defineProperty(window, "matchMedia", {
     writable: true,
     value: vi.fn().mockImplementation((query: string) => ({
-      matches,
+      matches: query.includes("prefers-reduced-motion")
+        ? prefersReducedMotion
+        : matches,
       media: query,
       onchange: null,
       addListener: vi.fn(),
@@ -306,7 +308,11 @@ describe("Sidebar toggle", () => {
 
     try {
       render(
-        <TestSidebar defaultOpen onOpenChangeComplete={onOpenChangeComplete}>
+        <TestSidebar
+          defaultOpen
+          animationDuration={100}
+          onOpenChangeComplete={onOpenChangeComplete}
+        >
           <SidebarFooter>
             <SidebarTrigger />
           </SidebarFooter>
@@ -321,11 +327,137 @@ describe("Sidebar toggle", () => {
       expect(onOpenChangeComplete).not.toHaveBeenCalled();
 
       act(() => {
-        vi.advanceTimersByTime(250);
+        vi.advanceTimersByTime(100);
+      });
+      expect(onOpenChangeComplete).not.toHaveBeenCalled();
+
+      act(() => {
+        vi.runAllTimers();
       });
 
       expect(onOpenChangeComplete).toHaveBeenCalledOnce();
       expect(onOpenChangeComplete).toHaveBeenCalledWith(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("completes immediately when reduced motion disables transitions", () => {
+    setMobileMatchMedia(false, true);
+    const onOpenChangeComplete = vi.fn();
+    render(
+      <TestSidebar defaultOpen onOpenChangeComplete={onOpenChangeComplete}>
+        <SidebarFooter>
+          <SidebarTrigger />
+        </SidebarFooter>
+      </TestSidebar>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Collapse sidebar" }));
+
+    expect(onOpenChangeComplete).toHaveBeenCalledOnce();
+    expect(onOpenChangeComplete).toHaveBeenCalledWith(false);
+  });
+
+  it("clears pending state when the callback is removed", () => {
+    vi.useFakeTimers();
+    const firstCallback = vi.fn();
+    const nextCallback = vi.fn();
+    const sidebar = (
+      open: boolean,
+      onOpenChangeComplete?: (open: boolean) => void,
+    ) => (
+      <TestSidebar open={open} onOpenChangeComplete={onOpenChangeComplete}>
+        <SidebarFooter>
+          <SidebarTrigger />
+        </SidebarFooter>
+      </TestSidebar>
+    );
+
+    try {
+      const { rerender } = render(sidebar(true, firstCallback));
+      rerender(sidebar(false, firstCallback));
+      rerender(sidebar(true));
+      rerender(sidebar(true, nextCallback));
+
+      fireTransitionEnd(
+        document.querySelector<HTMLElement>('[data-sidebar="sidebar"]')!,
+        "width",
+      );
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      expect(firstCallback).not.toHaveBeenCalled();
+      expect(nextCallback).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not complete when switching between desktop and mobile", () => {
+    vi.useFakeTimers();
+    const onOpenChangeComplete = vi.fn();
+    const sidebar = (mobileBreakpoint: number) => (
+      <TestSidebar
+        defaultOpen
+        mobileBreakpoint={mobileBreakpoint}
+        onOpenChangeComplete={onOpenChangeComplete}
+      >
+        <SidebarFooter>
+          <SidebarTrigger />
+        </SidebarFooter>
+      </TestSidebar>
+    );
+
+    try {
+      const { rerender } = render(sidebar(768));
+      setMobileMatchMedia(true);
+      rerender(sidebar(769));
+
+      fireTransitionEnd(
+        document.querySelector<HTMLElement>('[data-sidebar="sidebar"]')!,
+        "transform",
+      );
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      expect(onOpenChangeComplete).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not complete a controlled open state when switching to mobile", () => {
+    vi.useFakeTimers();
+    const onOpenChangeComplete = vi.fn();
+    const sidebar = (mobileBreakpoint: number) => (
+      <TestSidebar
+        open
+        mobileBreakpoint={mobileBreakpoint}
+        onOpenChangeComplete={onOpenChangeComplete}
+      >
+        <SidebarFooter>
+          <SidebarTrigger />
+        </SidebarFooter>
+      </TestSidebar>
+    );
+
+    try {
+      const { rerender } = render(sidebar(768));
+      setMobileMatchMedia(true);
+      rerender(sidebar(769));
+
+      fireTransitionEnd(
+        document.querySelector<HTMLElement>('[data-sidebar="sidebar"]')!,
+        "transform",
+      );
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      expect(onOpenChangeComplete).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
     }
