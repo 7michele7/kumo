@@ -49,6 +49,12 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
+function fireTransitionEnd(element: HTMLElement, propertyName: string) {
+  const event = new Event("transitionend", { bubbles: true });
+  Object.defineProperty(event, "propertyName", { value: propertyName });
+  fireEvent(element, event);
+}
+
 /** Minimal sidebar wrapper for tests that need Provider context. */
 function TestSidebar({
   children,
@@ -257,6 +263,73 @@ describe("Sidebar toggle", () => {
     await user.click(screen.getByRole("button", { name: "Collapse sidebar" }));
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
+
+  it("calls onOpenChangeComplete after the sidebar transition finishes", async () => {
+    const onOpenChangeComplete = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <TestSidebar
+        defaultOpen
+        onOpenChangeComplete={onOpenChangeComplete}
+      >
+        <SidebarFooter>
+          <SidebarTrigger />
+        </SidebarFooter>
+      </TestSidebar>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Collapse sidebar" }));
+    expect(onOpenChangeComplete).not.toHaveBeenCalled();
+
+    fireTransitionEnd(
+      document.querySelector<HTMLElement>('[data-sidebar="sidebar"]')!,
+      "opacity",
+    );
+    expect(onOpenChangeComplete).not.toHaveBeenCalled();
+
+    fireTransitionEnd(
+      document.querySelector<HTMLElement>('[data-sidebar="sidebar"]')!,
+      "width",
+    );
+    fireTransitionEnd(
+      document.querySelector<HTMLElement>('[data-sidebar="sidebar"]')!,
+      "width",
+    );
+
+    expect(onOpenChangeComplete).toHaveBeenCalledOnce();
+    expect(onOpenChangeComplete).toHaveBeenCalledWith(false);
+  });
+
+  it("completes the latest state when no transition event fires", () => {
+    vi.useFakeTimers();
+    const onOpenChangeComplete = vi.fn();
+
+    try {
+      render(
+        <TestSidebar defaultOpen onOpenChangeComplete={onOpenChangeComplete}>
+          <SidebarFooter>
+            <SidebarTrigger />
+          </SidebarFooter>
+        </TestSidebar>,
+      );
+
+      const trigger = screen.getByRole("button", {
+        name: "Collapse sidebar",
+      });
+      fireEvent.click(trigger);
+      fireEvent.click(trigger);
+      expect(onOpenChangeComplete).not.toHaveBeenCalled();
+
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+
+      expect(onOpenChangeComplete).toHaveBeenCalledOnce();
+      expect(onOpenChangeComplete).toHaveBeenCalledWith(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 // ============================================================================
@@ -267,9 +340,11 @@ describe("Sidebar.Collapsible", () => {
   function CollapsibleTest({
     defaultOpen = false,
     autoScrollOnOpen = false,
+    onOpenChangeComplete,
   }: {
     defaultOpen?: boolean;
     autoScrollOnOpen?: boolean;
+    onOpenChangeComplete?: (open: boolean) => void;
   }) {
     return (
       <TestSidebar defaultOpen>
@@ -279,6 +354,7 @@ describe("Sidebar.Collapsible", () => {
               <SidebarCollapsible
                 defaultOpen={defaultOpen}
                 autoScrollOnOpen={autoScrollOnOpen}
+                onOpenChangeComplete={onOpenChangeComplete}
               >
                 <SidebarCollapsibleTrigger
                   render={
@@ -344,6 +420,29 @@ describe("Sidebar.Collapsible", () => {
     const content = screen.getByTestId("collapsible-content");
     expect(content.hasAttribute("inert")).toBe(true);
     expect(content.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("calls onOpenChangeComplete after the content transition finishes", () => {
+    const onOpenChangeComplete = vi.fn();
+    render(<CollapsibleTest onOpenChangeComplete={onOpenChangeComplete} />);
+
+    fireEvent.click(screen.getByText("Compute").closest("button")!);
+    expect(onOpenChangeComplete).not.toHaveBeenCalled();
+
+    fireTransitionEnd(screen.getByTestId("collapsible-content"), "opacity");
+    expect(onOpenChangeComplete).not.toHaveBeenCalled();
+
+    fireTransitionEnd(
+      screen.getByTestId("collapsible-content"),
+      "grid-template-rows",
+    );
+    fireTransitionEnd(
+      screen.getByTestId("collapsible-content"),
+      "grid-template-rows",
+    );
+
+    expect(onOpenChangeComplete).toHaveBeenCalledOnce();
+    expect(onOpenChangeComplete).toHaveBeenCalledWith(true);
   });
 
   it("should scroll opened content into view when enabled", () => {
