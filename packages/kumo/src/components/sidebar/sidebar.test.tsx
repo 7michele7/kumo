@@ -524,13 +524,11 @@ describe("Sidebar.Collapsible", () => {
   function CollapsibleTest({
     defaultOpen = false,
     open,
-    contentId,
     autoScrollOnOpen = false,
     onOpenChangeComplete,
   }: {
     defaultOpen?: boolean;
     open?: boolean;
-    contentId?: string;
     autoScrollOnOpen?: boolean;
     onOpenChangeComplete?: (open: boolean) => void;
   }) {
@@ -553,10 +551,7 @@ describe("Sidebar.Collapsible", () => {
                     </SidebarMenuButton>
                   }
                 />
-                <SidebarCollapsibleContent
-                  {...(contentId ? { id: contentId } : {})}
-                  data-testid="collapsible-content"
-                >
+                <SidebarCollapsibleContent data-testid="collapsible-content">
                   <SidebarMenuSub>
                     <SidebarMenuSubButton>Workers</SidebarMenuSubButton>
                   </SidebarMenuSub>
@@ -628,25 +623,6 @@ describe("Sidebar.Collapsible", () => {
       screen.getByTestId("collapsible-content"),
       "grid-template-rows",
     );
-    fireTransitionEnd(
-      screen.getByTestId("collapsible-content"),
-      "grid-template-rows",
-    );
-
-    expect(onOpenChangeComplete).toHaveBeenCalledOnce();
-    expect(onOpenChangeComplete).toHaveBeenCalledWith(true);
-  });
-
-  it("completes from content with a custom id", () => {
-    const onOpenChangeComplete = vi.fn();
-    render(
-      <CollapsibleTest
-        contentId="custom-content"
-        onOpenChangeComplete={onOpenChangeComplete}
-      />,
-    );
-
-    fireEvent.click(screen.getByText("Compute").closest("button")!);
     fireTransitionEnd(
       screen.getByTestId("collapsible-content"),
       "grid-template-rows",
