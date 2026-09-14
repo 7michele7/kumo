@@ -105,12 +105,13 @@ function useOpenChangeComplete(
   open: boolean,
   duration: number,
   onComplete?: (open: boolean) => void,
+  active = true,
 ) {
-  const enabled = onComplete !== undefined;
+  const enabled = active && onComplete !== undefined;
   const callbackRef = useRef(onComplete);
   const durationRef = useRef(duration);
   const previousOpenRef = useRef(open);
-  const previousEnabledRef = useRef(enabled);
+  const previousActiveRef = useRef(active);
   const pendingOpenRef = useRef<boolean | undefined>(undefined);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -129,15 +130,15 @@ function useOpenChangeComplete(
 
   useEffect(() => {
     const openChanged = previousOpenRef.current !== open;
-    const wasEnabled = previousEnabledRef.current;
+    const wasActive = previousActiveRef.current;
     previousOpenRef.current = open;
-    previousEnabledRef.current = enabled;
+    previousActiveRef.current = active;
     if (!enabled) {
       pendingOpenRef.current = undefined;
       clearTimeout(timeoutRef.current);
       return;
     }
-    if (!wasEnabled || !openChanged) return;
+    if (!wasActive || !openChanged) return;
 
     pendingOpenRef.current = open;
     if (
@@ -152,7 +153,7 @@ function useOpenChangeComplete(
       durationRef.current + TRANSITION_FALLBACK_GRACE_MS,
     );
     return () => clearTimeout(timeoutRef.current);
-  }, [complete, enabled, open]);
+  }, [active, complete, enabled, open]);
 
   return complete;
 }
@@ -574,12 +575,14 @@ function SidebarProvider({
   const completeDesktopOpenChange = useOpenChangeComplete(
     open,
     animationDuration,
-    isMobile ? undefined : onOpenChangeComplete,
+    onOpenChangeComplete,
+    !isMobile,
   );
   const completeMobileOpenChange = useOpenChangeComplete(
     openMobile,
     animationDuration,
-    isMobile ? onOpenChangeComplete : undefined,
+    onOpenChangeComplete,
+    isMobile,
   );
   const completeOpenChange = isMobile
     ? completeMobileOpenChange
@@ -589,6 +592,7 @@ function SidebarProvider({
     (event: React.TransitionEvent<HTMLDivElement>) => {
       const target = event.target as HTMLElement;
       if (
+        target.closest("[data-sidebar-wrapper]") === event.currentTarget &&
         target.dataset.sidebar === "sidebar" &&
         event.propertyName === transitionProperty
       ) {
@@ -2192,6 +2196,7 @@ interface SidebarCollapseContextValue {
   isCollapsible: boolean;
   autoScrollOnOpen: boolean;
   toggle: () => void;
+  completeOpenChange: () => void;
 }
 
 const SidebarCollapseContext = createContext<SidebarCollapseContextValue>({
@@ -2200,6 +2205,7 @@ const SidebarCollapseContext = createContext<SidebarCollapseContextValue>({
   isCollapsible: false,
   autoScrollOnOpen: false,
   toggle: () => {},
+  completeOpenChange: () => {},
 });
 
 export interface SidebarCollapsibleProps extends ComponentPropsWithoutRef<"div"> {
@@ -2247,7 +2253,6 @@ const SidebarCollapsible = forwardRef<HTMLDivElement, SidebarCollapsibleProps>(
       autoScrollOnOpen = false,
       className,
       children,
-      onTransitionEnd,
       ...props
     },
     ref,
@@ -2266,6 +2271,12 @@ const SidebarCollapsible = forwardRef<HTMLDivElement, SidebarCollapsibleProps>(
       keyboardExpandedRef.current = false;
     }, [isOpen, onOpenChange]);
 
+    const completeOpenChange = useOpenChangeComplete(
+      isOpen,
+      animationDuration,
+      onOpenChangeComplete,
+    );
+
     const contextValue = useMemo<SidebarCollapseContextValue>(
       () => ({
         contentId,
@@ -2273,8 +2284,9 @@ const SidebarCollapsible = forwardRef<HTMLDivElement, SidebarCollapsibleProps>(
         isCollapsible: true,
         autoScrollOnOpen,
         toggle,
+        completeOpenChange,
       }),
-      [contentId, isOpen, autoScrollOnOpen, toggle],
+      [contentId, isOpen, autoScrollOnOpen, toggle, completeOpenChange],
     );
 
     const handleFocusIn = useCallback(
@@ -2306,24 +2318,6 @@ const SidebarCollapsible = forwardRef<HTMLDivElement, SidebarCollapsibleProps>(
       [onOpenChange],
     );
 
-    const completeOpenChange = useOpenChangeComplete(
-      isOpen,
-      animationDuration,
-      onOpenChangeComplete,
-    );
-    const handleOpenTransitionEnd = useCallback(
-      (event: React.TransitionEvent<HTMLDivElement>) => {
-        onTransitionEnd?.(event);
-        if (
-          (event.target as HTMLElement).id === contentId &&
-          event.propertyName === "grid-template-rows"
-        ) {
-          completeOpenChange();
-        }
-      },
-      [completeOpenChange, contentId, onTransitionEnd],
-    );
-
     return (
       <SidebarCollapseContext.Provider value={contextValue}>
         <div
@@ -2332,7 +2326,6 @@ const SidebarCollapsible = forwardRef<HTMLDivElement, SidebarCollapsibleProps>(
           className={cn("min-w-0", className)}
           onFocus={handleFocusIn}
           onBlur={handleFocusOut}
-          onTransitionEnd={handleOpenTransitionEnd}
           {...props}
         >
           {children}
@@ -2394,12 +2387,14 @@ SidebarCollapsibleTrigger.displayName = "Sidebar.CollapsibleTrigger";
 const SidebarCollapsibleContent = forwardRef<
   HTMLDivElement,
   ComponentPropsWithoutRef<"div">
->(({ className, children, ...props }, ref) => {
-  const { contentId, isOpen: isCollapsibleOpen } = useContext(
-    SidebarCollapseContext,
-  );
+>(({ className, children, onTransitionEnd, ...props }, ref) => {
+  const {
+    contentId,
+    isOpen: isCollapsibleOpen,
+    autoScrollOnOpen,
+    completeOpenChange,
+  } = useContext(SidebarCollapseContext);
   const { state, animationDuration } = useSidebar();
-  const { autoScrollOnOpen } = useContext(SidebarCollapseContext);
   const contentRef = useRef<HTMLDivElement | null>(null);
 
   const isOpen = isCollapsibleOpen && state !== "collapsed";
@@ -2448,12 +2443,26 @@ const SidebarCollapsibleContent = forwardRef<
     [ref, inertRef],
   );
 
+  const handleOpenTransitionEnd = useCallback(
+    (event: React.TransitionEvent<HTMLDivElement>) => {
+      onTransitionEnd?.(event);
+      if (
+        event.target === event.currentTarget &&
+        event.propertyName === "grid-template-rows"
+      ) {
+        completeOpenChange();
+      }
+    },
+    [completeOpenChange, onTransitionEnd],
+  );
+
   return (
     <div
       ref={mergedRef}
       id={contentId}
       role="region"
       aria-hidden={!isOpen}
+      onTransitionEnd={handleOpenTransitionEnd}
       className={cn(
         "grid",
         "transition-[grid-template-rows] duration-(--sidebar-animation-duration) ease-(--sidebar-easing)",

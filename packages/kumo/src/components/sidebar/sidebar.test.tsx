@@ -270,10 +270,7 @@ describe("Sidebar toggle", () => {
     const onOpenChangeComplete = vi.fn();
     const user = userEvent.setup();
     render(
-      <TestSidebar
-        defaultOpen
-        onOpenChangeComplete={onOpenChangeComplete}
-      >
+      <TestSidebar defaultOpen onOpenChangeComplete={onOpenChangeComplete}>
         <SidebarFooter>
           <SidebarTrigger />
         </SidebarFooter>
@@ -300,6 +297,40 @@ describe("Sidebar toggle", () => {
 
     expect(onOpenChangeComplete).toHaveBeenCalledOnce();
     expect(onOpenChangeComplete).toHaveBeenCalledWith(false);
+  });
+
+  it("does not complete a parent sidebar from a nested sidebar transition", () => {
+    const outerOnOpenChangeComplete = vi.fn();
+    const innerOnOpenChangeComplete = vi.fn();
+    const nestedSidebars = (open: boolean) => (
+      <SidebarProvider
+        open={open}
+        onOpenChangeComplete={outerOnOpenChangeComplete}
+      >
+        <Sidebar>
+          <span />
+        </Sidebar>
+        <SidebarProvider
+          open={open}
+          onOpenChangeComplete={innerOnOpenChangeComplete}
+        >
+          <Sidebar>
+            <span />
+          </Sidebar>
+        </SidebarProvider>
+      </SidebarProvider>
+    );
+    const { rerender } = render(nestedSidebars(true));
+    rerender(nestedSidebars(false));
+
+    const sidebars = document.querySelectorAll<HTMLElement>(
+      '[data-sidebar="sidebar"]',
+    );
+    fireTransitionEnd(sidebars[1]!, "width");
+
+    expect(innerOnOpenChangeComplete).toHaveBeenCalledOnce();
+    expect(innerOnOpenChangeComplete).toHaveBeenCalledWith(false);
+    expect(outerOnOpenChangeComplete).not.toHaveBeenCalled();
   });
 
   it("completes the latest state when no transition event fires", () => {
@@ -340,6 +371,27 @@ describe("Sidebar toggle", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("completes an open change when the callback is added with it", () => {
+    const onOpenChangeComplete = vi.fn();
+    const sidebar = (open: boolean, callback?: (nextOpen: boolean) => void) => (
+      <TestSidebar open={open} onOpenChangeComplete={callback}>
+        <SidebarFooter>
+          <SidebarTrigger />
+        </SidebarFooter>
+      </TestSidebar>
+    );
+    const { rerender } = render(sidebar(true));
+    rerender(sidebar(false, onOpenChangeComplete));
+
+    fireTransitionEnd(
+      document.querySelector<HTMLElement>('[data-sidebar="sidebar"]')!,
+      "width",
+    );
+
+    expect(onOpenChangeComplete).toHaveBeenCalledOnce();
+    expect(onOpenChangeComplete).toHaveBeenCalledWith(false);
   });
 
   it("completes immediately when reduced motion disables transitions", () => {
@@ -471,10 +523,14 @@ describe("Sidebar toggle", () => {
 describe("Sidebar.Collapsible", () => {
   function CollapsibleTest({
     defaultOpen = false,
+    open,
+    contentId,
     autoScrollOnOpen = false,
     onOpenChangeComplete,
   }: {
     defaultOpen?: boolean;
+    open?: boolean;
+    contentId?: string;
     autoScrollOnOpen?: boolean;
     onOpenChangeComplete?: (open: boolean) => void;
   }) {
@@ -485,6 +541,7 @@ describe("Sidebar.Collapsible", () => {
             <SidebarMenuItem>
               <SidebarCollapsible
                 defaultOpen={defaultOpen}
+                open={open}
                 autoScrollOnOpen={autoScrollOnOpen}
                 onOpenChangeComplete={onOpenChangeComplete}
               >
@@ -496,7 +553,10 @@ describe("Sidebar.Collapsible", () => {
                     </SidebarMenuButton>
                   }
                 />
-                <SidebarCollapsibleContent data-testid="collapsible-content">
+                <SidebarCollapsibleContent
+                  {...(contentId ? { id: contentId } : {})}
+                  data-testid="collapsible-content"
+                >
                   <SidebarMenuSub>
                     <SidebarMenuSubButton>Workers</SidebarMenuSubButton>
                   </SidebarMenuSub>
@@ -575,6 +635,44 @@ describe("Sidebar.Collapsible", () => {
 
     expect(onOpenChangeComplete).toHaveBeenCalledOnce();
     expect(onOpenChangeComplete).toHaveBeenCalledWith(true);
+  });
+
+  it("completes from content with a custom id", () => {
+    const onOpenChangeComplete = vi.fn();
+    render(
+      <CollapsibleTest
+        contentId="custom-content"
+        onOpenChangeComplete={onOpenChangeComplete}
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Compute").closest("button")!);
+    fireTransitionEnd(
+      screen.getByTestId("collapsible-content"),
+      "grid-template-rows",
+    );
+
+    expect(onOpenChangeComplete).toHaveBeenCalledOnce();
+    expect(onOpenChangeComplete).toHaveBeenCalledWith(true);
+  });
+
+  it("completes a controlled change when the callback is added with it", () => {
+    const onOpenChangeComplete = vi.fn();
+    const { rerender } = render(<CollapsibleTest open />);
+    rerender(
+      <CollapsibleTest
+        open={false}
+        onOpenChangeComplete={onOpenChangeComplete}
+      />,
+    );
+
+    fireTransitionEnd(
+      screen.getByTestId("collapsible-content"),
+      "grid-template-rows",
+    );
+
+    expect(onOpenChangeComplete).toHaveBeenCalledOnce();
+    expect(onOpenChangeComplete).toHaveBeenCalledWith(false);
   });
 
   it("should scroll opened content into view when enabled", () => {
