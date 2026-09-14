@@ -337,6 +337,13 @@ export {
   type UseTableOfContentsActiveIdResult,
 } from "./components/table-of-contents";
 export {
+  ButtonGroup,
+  KUMO_BUTTON_GROUP_VARIANTS,
+  KUMO_BUTTON_GROUP_DEFAULT_VARIANTS,
+  KUMO_BUTTON_GROUP_STYLING,
+  type ButtonGroupProps,
+} from "./components/button-group";
+export {
   TagInput,
   type TagInputLabels,
   type TagInputProps,
