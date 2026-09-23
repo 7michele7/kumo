@@ -526,14 +526,16 @@ describe("Sidebar.Collapsible", () => {
     open,
     autoScrollOnOpen = false,
     onOpenChangeComplete,
+    sidebarOpen,
   }: {
     defaultOpen?: boolean;
     open?: boolean;
     autoScrollOnOpen?: boolean;
     onOpenChangeComplete?: (open: boolean) => void;
+    sidebarOpen?: boolean;
   }) {
     return (
-      <TestSidebar defaultOpen>
+      <TestSidebar defaultOpen open={sidebarOpen}>
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
@@ -649,6 +651,86 @@ describe("Sidebar.Collapsible", () => {
 
     expect(onOpenChangeComplete).toHaveBeenCalledOnce();
     expect(onOpenChangeComplete).toHaveBeenCalledWith(false);
+  });
+
+  it("completes when the sidebar expands and shows an open group", () => {
+    const onOpenChangeComplete = vi.fn();
+    const { rerender } = render(
+      <CollapsibleTest
+        open
+        sidebarOpen={false}
+        onOpenChangeComplete={onOpenChangeComplete}
+      />,
+    );
+    rerender(
+      <CollapsibleTest
+        open
+        sidebarOpen
+        onOpenChangeComplete={onOpenChangeComplete}
+      />,
+    );
+    expect(onOpenChangeComplete).not.toHaveBeenCalled();
+
+    fireTransitionEnd(
+      screen.getByTestId("collapsible-content"),
+      "grid-template-rows",
+    );
+
+    expect(onOpenChangeComplete).toHaveBeenCalledOnce();
+    expect(onOpenChangeComplete).toHaveBeenCalledWith(true);
+  });
+
+  it("completes when the sidebar collapses and hides an open group", () => {
+    const onOpenChangeComplete = vi.fn();
+    const { rerender } = render(
+      <CollapsibleTest
+        open
+        sidebarOpen
+        onOpenChangeComplete={onOpenChangeComplete}
+      />,
+    );
+    rerender(
+      <CollapsibleTest
+        open
+        sidebarOpen={false}
+        onOpenChangeComplete={onOpenChangeComplete}
+      />,
+    );
+
+    fireTransitionEnd(
+      screen.getByTestId("collapsible-content"),
+      "grid-template-rows",
+    );
+
+    expect(onOpenChangeComplete).toHaveBeenCalledOnce();
+    expect(onOpenChangeComplete).toHaveBeenCalledWith(false);
+  });
+
+  it("completes when the mobile drawer opens and shows an open group", () => {
+    setMobileMatchMedia(true);
+    const onOpenChangeComplete = vi.fn();
+    const { rerender } = render(
+      <CollapsibleTest
+        open
+        sidebarOpen={false}
+        onOpenChangeComplete={onOpenChangeComplete}
+      />,
+    );
+    rerender(
+      <CollapsibleTest
+        open
+        sidebarOpen
+        onOpenChangeComplete={onOpenChangeComplete}
+      />,
+    );
+
+    fireTransitionEnd(
+      screen.getByTestId("collapsible-content"),
+      "grid-template-rows",
+    );
+
+    expect(onOpenChangeComplete).toHaveBeenCalledOnce();
+    expect(onOpenChangeComplete).toHaveBeenCalledWith(true);
   });
 
   it("should scroll opened content into view when enabled", () => {

@@ -2199,6 +2199,9 @@ interface SidebarCollapseContextValue {
   completeOpenChange: () => void;
 }
 
+const isCollapsibleContentShown = (isOpen: boolean, state: SidebarState) =>
+  isOpen && state !== "collapsed";
+
 const SidebarCollapseContext = createContext<SidebarCollapseContextValue>({
   contentId: "",
   isOpen: true,
@@ -2215,7 +2218,10 @@ export interface SidebarCollapsibleProps extends ComponentPropsWithoutRef<"div">
   open?: boolean;
   /** Callback when open state changes. */
   onOpenChange?: (open: boolean) => void;
-  /** Callback after the content finishes its open or close transition. */
+  /**
+   * Callback after the content finishes showing or hiding. Also fires when the
+   * sidebar expands or collapses an open section, including the mobile drawer.
+   */
   onOpenChangeComplete?: (open: boolean) => void;
   /** Scroll the expanded content into view after opening. @default false */
   autoScrollOnOpen?: boolean;
@@ -2257,9 +2263,10 @@ const SidebarCollapsible = forwardRef<HTMLDivElement, SidebarCollapsibleProps>(
     },
     ref,
   ) => {
-    const { animationDuration } = useSidebar();
+    const { animationDuration, state } = useSidebar();
     const [internalOpen, setInternalOpen] = useState(defaultOpen);
     const isOpen = openProp ?? internalOpen;
+    const isContentShown = isCollapsibleContentShown(isOpen, state);
     const contentId = useId();
     const keyboardExpandedRef = useRef(false);
 
@@ -2272,7 +2279,7 @@ const SidebarCollapsible = forwardRef<HTMLDivElement, SidebarCollapsibleProps>(
     }, [isOpen, onOpenChange]);
 
     const completeOpenChange = useOpenChangeComplete(
-      isOpen,
+      isContentShown,
       animationDuration,
       onOpenChangeComplete,
     );
@@ -2397,7 +2404,7 @@ const SidebarCollapsibleContent = forwardRef<
   const { state, animationDuration } = useSidebar();
   const contentRef = useRef<HTMLDivElement | null>(null);
 
-  const isOpen = isCollapsibleOpen && state !== "collapsed";
+  const isOpen = isCollapsibleContentShown(isCollapsibleOpen, state);
 
   useEffect(() => {
     if (!isOpen || !autoScrollOnOpen) return;
