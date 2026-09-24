@@ -2404,10 +2404,10 @@ const SidebarCollapsibleContent = forwardRef<
   const { state, animationDuration } = useSidebar();
   const contentRef = useRef<HTMLDivElement | null>(null);
 
-  const isOpen = isCollapsibleContentShown(isCollapsibleOpen, state);
+  const isContentShown = isCollapsibleContentShown(isCollapsibleOpen, state);
 
   useEffect(() => {
-    if (!isOpen || !autoScrollOnOpen) return;
+    if (!isContentShown || !autoScrollOnOpen) return;
 
     const timeout = window.setTimeout(() => {
       const prefersReducedMotion = window.matchMedia(
@@ -2420,21 +2420,21 @@ const SidebarCollapsibleContent = forwardRef<
     }, animationDuration);
 
     return () => window.clearTimeout(timeout);
-  }, [isOpen, autoScrollOnOpen, animationDuration]);
+  }, [isContentShown, autoScrollOnOpen, animationDuration]);
 
   // Imperatively set inert — React 18 doesn't reliably forward
   // the inert attribute as a JSX prop on initial mount.
   const inertRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (node) {
-        if (!isOpen) {
+        if (!isContentShown) {
           node.setAttribute("inert", "");
         } else {
           node.removeAttribute("inert");
         }
       }
     },
-    [isOpen],
+    [isContentShown],
   );
 
   const mergedRef = useCallback(
@@ -2468,13 +2468,13 @@ const SidebarCollapsibleContent = forwardRef<
       ref={mergedRef}
       id={contentId}
       role="region"
-      aria-hidden={!isOpen}
+      aria-hidden={!isContentShown}
       onTransitionEnd={handleOpenTransitionEnd}
       className={cn(
         "grid",
         "transition-[grid-template-rows] duration-(--sidebar-animation-duration) ease-(--sidebar-easing)",
         "motion-reduce:transition-none",
-        isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        isContentShown ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
         className,
       )}
       {...props}

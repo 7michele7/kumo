@@ -653,19 +653,24 @@ describe("Sidebar.Collapsible", () => {
     expect(onOpenChangeComplete).toHaveBeenCalledWith(false);
   });
 
-  it("completes when the sidebar expands and shows an open group", () => {
+  it.each([
+    { change: "the sidebar expands", isMobile: false, sidebarOpen: true },
+    { change: "the sidebar collapses", isMobile: false, sidebarOpen: false },
+    { change: "the mobile drawer opens", isMobile: true, sidebarOpen: true },
+  ])("completes an open group when $change", ({ isMobile, sidebarOpen }) => {
+    setMobileMatchMedia(isMobile);
     const onOpenChangeComplete = vi.fn();
     const { rerender } = render(
       <CollapsibleTest
         open
-        sidebarOpen={false}
+        sidebarOpen={!sidebarOpen}
         onOpenChangeComplete={onOpenChangeComplete}
       />,
     );
     rerender(
       <CollapsibleTest
         open
-        sidebarOpen
+        sidebarOpen={sidebarOpen}
         onOpenChangeComplete={onOpenChangeComplete}
       />,
     );
@@ -677,60 +682,7 @@ describe("Sidebar.Collapsible", () => {
     );
 
     expect(onOpenChangeComplete).toHaveBeenCalledOnce();
-    expect(onOpenChangeComplete).toHaveBeenCalledWith(true);
-  });
-
-  it("completes when the sidebar collapses and hides an open group", () => {
-    const onOpenChangeComplete = vi.fn();
-    const { rerender } = render(
-      <CollapsibleTest
-        open
-        sidebarOpen
-        onOpenChangeComplete={onOpenChangeComplete}
-      />,
-    );
-    rerender(
-      <CollapsibleTest
-        open
-        sidebarOpen={false}
-        onOpenChangeComplete={onOpenChangeComplete}
-      />,
-    );
-
-    fireTransitionEnd(
-      screen.getByTestId("collapsible-content"),
-      "grid-template-rows",
-    );
-
-    expect(onOpenChangeComplete).toHaveBeenCalledOnce();
-    expect(onOpenChangeComplete).toHaveBeenCalledWith(false);
-  });
-
-  it("completes when the mobile drawer opens and shows an open group", () => {
-    setMobileMatchMedia(true);
-    const onOpenChangeComplete = vi.fn();
-    const { rerender } = render(
-      <CollapsibleTest
-        open
-        sidebarOpen={false}
-        onOpenChangeComplete={onOpenChangeComplete}
-      />,
-    );
-    rerender(
-      <CollapsibleTest
-        open
-        sidebarOpen
-        onOpenChangeComplete={onOpenChangeComplete}
-      />,
-    );
-
-    fireTransitionEnd(
-      screen.getByTestId("collapsible-content"),
-      "grid-template-rows",
-    );
-
-    expect(onOpenChangeComplete).toHaveBeenCalledOnce();
-    expect(onOpenChangeComplete).toHaveBeenCalledWith(true);
+    expect(onOpenChangeComplete).toHaveBeenCalledWith(sidebarOpen);
   });
 
   it("should scroll opened content into view when enabled", () => {
