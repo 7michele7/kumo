@@ -2199,8 +2199,10 @@ interface SidebarCollapseContextValue {
   completeOpenChange: () => void;
 }
 
-const isCollapsibleContentShown = (isOpen: boolean, state: SidebarState) =>
-  isOpen && state !== "collapsed";
+const isCollapsibleContentShown = (
+  isOpen: boolean,
+  { isMobile, openMobile, state }: SidebarContextValue,
+) => isOpen && (isMobile ? openMobile : state !== "collapsed");
 
 const SidebarCollapseContext = createContext<SidebarCollapseContextValue>({
   contentId: "",
@@ -2263,10 +2265,11 @@ const SidebarCollapsible = forwardRef<HTMLDivElement, SidebarCollapsibleProps>(
     },
     ref,
   ) => {
-    const { animationDuration, state } = useSidebar();
+    const sidebar = useSidebar();
+    const { animationDuration } = sidebar;
     const [internalOpen, setInternalOpen] = useState(defaultOpen);
     const isOpen = openProp ?? internalOpen;
-    const isContentShown = isCollapsibleContentShown(isOpen, state);
+    const isContentShown = isCollapsibleContentShown(isOpen, sidebar);
     const contentId = useId();
     const keyboardExpandedRef = useRef(false);
 
@@ -2401,10 +2404,11 @@ const SidebarCollapsibleContent = forwardRef<
     autoScrollOnOpen,
     completeOpenChange,
   } = useContext(SidebarCollapseContext);
-  const { state, animationDuration } = useSidebar();
+  const sidebar = useSidebar();
+  const { animationDuration } = sidebar;
   const contentRef = useRef<HTMLDivElement | null>(null);
 
-  const isContentShown = isCollapsibleContentShown(isCollapsibleOpen, state);
+  const isContentShown = isCollapsibleContentShown(isCollapsibleOpen, sidebar);
 
   useEffect(() => {
     if (!isContentShown || !autoScrollOnOpen) return;
