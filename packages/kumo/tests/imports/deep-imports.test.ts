@@ -5,7 +5,7 @@ describe("Deep Import Patterns", () => {
   const allComponents = discoverComponents();
   const componentsWithExports = getComponentsWithExports();
 
-  describe("Components with configured exports", () => {
+  describe("Components with configured exports", { timeout: 15_000 }, () => {
     componentsWithExports.forEach((componentName: string) => {
       it(`should import from @cloudflare/kumo/components/${componentName}`, async () => {
         const module = await import(

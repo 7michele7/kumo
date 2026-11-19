@@ -61,7 +61,7 @@ packages/kumo/ai/component-registry.md
 packages/kumo/ai/schemas.ts
 
 # Vitest browser-mode artifacts (attachments, failure screenshots)
-.vitest-attachments/
+.vitest/
 __screenshots__/
 
 # Browser visual-contract baselines are intentional test fixtures. Keep them

@@ -13,15 +13,19 @@ const isBuilt = existsSync(join(pkgDir, "dist/index.js"));
 // published package. Catches failure modes bundler-based tests mask, e.g.
 // bundled-CJS require() calls of externalized modules.
 describe.skipIf(!isBuilt)("Node ESM import smoke (post-build)", () => {
-  it("every export entry imports cleanly in plain Node", () => {
-    const result = spawnSync(
-      process.execPath,
-      [join(__dirname, "import-entries.mjs"), pkgDir],
-      { timeout: 30_000, encoding: "utf-8" },
-    );
+  it(
+    "every export entry imports cleanly in plain Node",
+    { timeout: 30_000 },
+    () => {
+      const result = spawnSync(
+        process.execPath,
+        [join(__dirname, "import-entries.mjs"), pkgDir],
+        { timeout: 30_000, encoding: "utf-8" },
+      );
 
-    expect(result.status, `entries failed to import:\n${result.stderr}`).toBe(
-      0,
-    );
-  });
+      expect(result.status, `entries failed to import:\n${result.stderr}`).toBe(
+        0,
+      );
+    },
+  );
 });

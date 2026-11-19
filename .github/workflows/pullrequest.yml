@@ -154,7 +154,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: visual-contract-artifacts
-          path: packages/kumo/.vitest-attachments/
+          path: packages/kumo/.vitest/attachments/
           if-no-files-found: ignore
           retention-days: 7
 
