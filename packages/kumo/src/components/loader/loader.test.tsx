@@ -11,16 +11,17 @@ describe("Loader", () => {
     [45, "45"],
   ] as const)("sizes via SVG attributes for size=%s", (size, expected) => {
     render(<Loader size={size} />);
-    const svg = screen.getByRole("status");
-    expect(svg.getAttribute("width")).toBe(expected);
-    expect(svg.getAttribute("height")).toBe(expected);
+    const svg = screen.getByRole("status").querySelector("svg");
+    expect(svg?.getAttribute("width")).toBe(expected);
+    expect(svg?.getAttribute("height")).toBe(expected);
   });
 
   // Browsers with SVG disabled (e.g. Tor Browser "Safest") create <svg> as a
   // generic Element without `.style`, so React crashes applying inline styles.
   it("does not set an inline style", () => {
     render(<Loader size="lg" />);
-    expect(screen.getByRole("status").hasAttribute("style")).toBe(false);
+    const svg = screen.getByRole("status").querySelector("svg");
+    expect(svg?.hasAttribute("style")).toBe(false);
   });
 
   it("renders when the svg element has no style object", () => {

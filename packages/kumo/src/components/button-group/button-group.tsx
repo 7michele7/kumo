@@ -15,6 +15,8 @@ export const KUMO_BUTTON_GROUP_STYLING = {
     // `isolate` keeps child z-index changes contained; `w-max` shrinks the
     // group to its content so it doesn't stretch across its container.
     "relative isolate inline-flex w-max flex-row",
+    // Reset native <fieldset> chrome; it provides the group role.
+    "m-0 min-w-0 border-0 p-0",
     // Give every child a stacking context so keyboard-focused controls can
     // lift above the adjacent seam, including tooltip-wrapped buttons.
     "[&>*]:relative [&>*:focus-visible]:z-10 [&>*:has(:focus-visible)]:z-10",
@@ -37,7 +39,7 @@ export const KUMO_BUTTON_GROUP_STYLING = {
 } as const;
 
 export interface ButtonGroupProps extends Omit<
-  HTMLAttributes<HTMLDivElement>,
+  HTMLAttributes<HTMLFieldSetElement>,
   "role"
 > {
   /** Additional CSS classes merged via `cn()`. Use kumo semantic tokens only. */
@@ -56,8 +58,8 @@ export interface ButtonGroupProps extends Omit<
  *
  * Children keep their own variant, size, and shape — ButtonGroup only handles
  * the layout: it flattens the inner corners and overlaps borders so the buttons
- * share one seam. Renders `role="group"` so assistive technology treats the
- * buttons as a related set (pair it with an `aria-label`).
+ * share one seam. Renders a native `<fieldset>` (role `group`) so assistive
+ * technology treats the buttons as a related set (pair it with an `aria-label`).
  *
  * For grouping multiple *independent* buttons or inputs (e.g. a formatting bar
  * or a page-level set of actions), use `Toolbar` instead — it provides the
@@ -82,19 +84,18 @@ export interface ButtonGroupProps extends Omit<
  * </ButtonGroup>
  * ```
  */
-export const ButtonGroup = forwardRef<HTMLDivElement, ButtonGroupProps>(
+export const ButtonGroup = forwardRef<HTMLFieldSetElement, ButtonGroupProps>(
   ({ className, children, ...props }, ref) => {
     return (
-      <div
+      <fieldset
         {...props}
+        role={undefined}
         ref={ref}
-        // oxlint-disable-next-line prefer-tag-over-role -- <fieldset> is for form controls and adds UA styles; the public ref is HTMLDivElement
-        role="group"
         data-kumo-component="ButtonGroup"
         className={cn(KUMO_BUTTON_GROUP_STYLING.baseClasses, className)}
       >
         {children}
-      </div>
+      </fieldset>
     );
   },
 );

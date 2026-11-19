@@ -99,12 +99,12 @@ describe("ButtonGroup", () => {
   });
 
   it("forwards a ref to the container", () => {
-    const ref = createRef<HTMLDivElement>();
+    const ref = createRef<HTMLFieldSetElement>();
     render(
       <ButtonGroup ref={ref}>
         <Button>One</Button>
       </ButtonGroup>,
     );
-    expect(ref.current).toBeInstanceOf(HTMLDivElement);
+    expect(ref.current).toBeInstanceOf(HTMLFieldSetElement);
   });
 });

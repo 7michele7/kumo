@@ -156,9 +156,6 @@ export const CloudflareLogo = forwardRef<SVGSVGElement, CloudflareLogoProps>(
           viewBox={CLOUDFLARE_GLYPH_VIEWBOX}
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          // oxlint-disable-next-line prefer-tag-over-role -- role="img" with aria-label is the accessible pattern for inline SVG
-          role="img"
-          aria-label="Cloudflare logo"
           className={cn(
             color === "white" && "text-white",
             color === "black" && "text-black",
@@ -166,6 +163,7 @@ export const CloudflareLogo = forwardRef<SVGSVGElement, CloudflareLogoProps>(
           )}
           {...props}
         >
+          <title>Cloudflare logo</title>
           <path
             d="M33.204 20.4C33.3649 19.9741 33.4217 19.5159 33.3695 19.0636C33.3173 18.6113 33.1577 18.1781 32.904 17.8C32.6435 17.4876 32.3239 17.2297 31.9636 17.0409C31.6032 16.8522 31.2092 16.7363 30.804 16.7L13.404 16.5C13.304 16.5 13.204 16.4 13.104 16.4C13.0808 16.3825 13.0618 16.3599 13.0488 16.3339C13.0358 16.3078 13.029 16.2791 13.029 16.25C13.029 16.2209 13.0358 16.1922 13.0488 16.1662C13.0618 16.1401 13.0808 16.1175 13.104 16.1C13.204 15.9 13.304 15.8 13.504 15.8L31.004 15.6C32.115 15.4767 33.1731 15.0597 34.0695 14.3918C34.9659 13.7239 35.6681 12.8293 36.104 11.8L37.104 9.20002C37.104 9.10002 37.204 9.00001 37.104 8.90001C36.5604 6.47843 35.2411 4.30052 33.3466 2.69721C31.4521 1.09391 29.086 0.152865 26.6079 0.0170769C24.1298 -0.118712 21.675 0.558179 19.6167 1.94489C17.5584 3.33161 16.009 5.35233 15.204 7.70002C14.159 6.95365 12.8843 6.59957 11.604 6.70002C10.4291 6.83102 9.33369 7.35777 8.49774 8.19372C7.66179 9.02966 7.13505 10.1251 7.00404 11.3C6.93745 11.9014 6.97125 12.5097 7.10404 13.1C5.20298 13.1526 3.39743 13.9448 2.07147 15.3081C0.745511 16.6714 0.00377461 18.4982 0.00403983 20.4C-0.0123708 20.7695 0.0212659 21.1395 0.104038 21.5C0.10863 21.5781 0.141713 21.6517 0.19701 21.707C0.252307 21.7623 0.325975 21.7954 0.404041 21.8H32.504C32.704 21.8 32.904 21.7 32.904 21.5L33.204 20.4Z"
             fill={fillOrange}
@@ -185,9 +183,6 @@ export const CloudflareLogo = forwardRef<SVGSVGElement, CloudflareLogoProps>(
         viewBox={CLOUDFLARE_FULL_LOGO_VIEWBOX}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        // oxlint-disable-next-line prefer-tag-over-role -- role="img" with aria-label is the accessible pattern for inline SVG
-        role="img"
-        aria-label="Cloudflare logo"
         className={cn(
           // Wordmark text color - respects dark mode
           color === "color" && "text-kumo-default",
@@ -197,6 +192,7 @@ export const CloudflareLogo = forwardRef<SVGSVGElement, CloudflareLogoProps>(
         )}
         {...props}
       >
+        <title>Cloudflare logo</title>
         {/* Cloud glyph */}
         <path d={CLOUDFLARE_FULL_LOGO_ORANGE_PATH} fill={fillOrange} />
         <path d={CLOUDFLARE_FULL_LOGO_YELLOW_PATH} fill={fillYellow} />

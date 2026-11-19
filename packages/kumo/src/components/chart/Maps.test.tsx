@@ -56,8 +56,14 @@ describe("GlobeMap", () => {
 
     const globe = getByLabelText("Traffic globe");
     expect(globe.tagName).toBe("svg");
-    expect(getByRole("group", { name: "Traffic globe" })).toBe(globe);
-    expect(globe.getAttribute("aria-describedby")).toBeTruthy();
+    expect(globe.hasAttribute("role")).toBe(false);
+    expect(globe.hasAttribute("tabindex")).toBe(false);
+    expect(
+      getByRole("slider", { name: "Traffic globe longitude" }),
+    ).toBeTruthy();
+    expect(
+      getByRole("slider", { name: "Traffic globe latitude" }),
+    ).toBeTruthy();
     expect(globe.querySelectorAll("path").length).toBeGreaterThan(3);
     const landPath = globe
       .querySelector('[data-land-style="hatched"]')
@@ -110,7 +116,7 @@ describe("GlobeMap", () => {
     expect(onUserRotationChange).toHaveBeenCalledWith([2, -20, 0]);
   });
 
-  it("supports keyboard rotation", async () => {
+  it("supports keyboard rotation through native longitude and latitude sliders", () => {
     const onUserRotationChange = vi.fn();
     const { getByRole } = render(
       <GlobeMap
@@ -118,12 +124,40 @@ describe("GlobeMap", () => {
         onUserRotationChange={onUserRotationChange}
       />,
     );
-    const globe = getByRole("group", { name: "Keyboard globe" });
+    const longitude = getByRole("slider", { name: "Keyboard globe longitude" });
+    const latitude = getByRole("slider", { name: "Keyboard globe latitude" });
+    expect(longitude.getAttribute("aria-valuetext")).toBe("-10°");
+    expect(latitude.getAttribute("aria-valuetext")).toBe("-20°");
 
-    await userEvent.type(globe, "{ArrowRight}{ArrowUp}");
+    fireEvent.change(longitude, { target: { value: "0" } });
+    fireEvent.change(latitude, { target: { value: "-10" } });
 
     expect(onUserRotationChange).toHaveBeenNthCalledWith(1, [0, -20, 0]);
     expect(onUserRotationChange).toHaveBeenNthCalledWith(2, [0, -10, 0]);
+  });
+
+  it("applies longitude slider changes relative to an unwrapped rotation", () => {
+    const onUserRotationChange = vi.fn();
+    const { getByRole } = render(
+      <GlobeMap
+        aria-label="Wrapped globe"
+        defaultRotation={[350, 0, 0]}
+        onUserRotationChange={onUserRotationChange}
+      />,
+    );
+    const longitude = getByRole("slider", { name: "Wrapped globe longitude" });
+    expect(longitude.getAttribute("aria-valuetext")).toBe("-10°");
+
+    fireEvent.change(longitude, { target: { value: "0" } });
+
+    expect(onUserRotationChange).toHaveBeenCalledWith([360, 0, 0]);
+  });
+
+  it("omits the rotation sliders when the globe is not draggable", () => {
+    const { queryByRole } = render(
+      <GlobeMap aria-label="Static globe" draggable={false} />,
+    );
+    expect(queryByRole("slider")).toBeNull();
   });
 
   it("does not expose informational markers as buttons", () => {

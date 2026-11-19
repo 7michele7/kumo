@@ -1170,17 +1170,21 @@ const SidebarLoading = forwardRef<
   <div
     ref={ref}
     data-sidebar="loading"
-    // oxlint-disable-next-line prefer-tag-over-role -- <output> only allows phrasing content; this wraps block skeleton rows
-    role="status"
-    aria-label={label}
     className={cn(
       "flex min-h-0 w-full flex-1 flex-col gap-4 px-2 py-3",
       className,
     )}
     {...props}
   >
+    <output aria-label={label} className="sr-only">
+      {label}
+    </output>
     {SIDEBAR_LOADING_GROUPS.map((widths, groupIndex) => (
-      <div key={groupIndex} className="flex flex-col gap-0.5">
+      <div
+        key={groupIndex}
+        aria-hidden="true"
+        className="flex flex-col gap-0.5"
+      >
         <SkeletonLine className="mb-1 ml-2 h-2 w-16 rounded-full group-data-[state=collapsed]/sidebar:hidden" />
         {widths.map((width, itemIndex) => (
           <div
@@ -2481,8 +2485,6 @@ const SidebarCollapsibleContent = forwardRef<
     <div
       ref={mergedRef}
       id={contentId}
-      // oxlint-disable-next-line prefer-tag-over-role -- an unnamed <section> exposes no region role, and the public ref is HTMLDivElement
-      role="region"
       aria-hidden={!isContentShown}
       onTransitionEnd={handleOpenTransitionEnd}
       className={cn(

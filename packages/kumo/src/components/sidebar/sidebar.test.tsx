@@ -600,10 +600,10 @@ describe("Sidebar.Collapsible", () => {
     expect(trigger.getAttribute("aria-controls")).toBe(content.id);
   });
 
-  it("should have role=region on content", () => {
+  it("should not expose content as an unnamed region landmark", () => {
     render(<CollapsibleTest />);
     const content = screen.getByTestId("collapsible-content");
-    expect(content.getAttribute("role")).toBe("region");
+    expect(content.hasAttribute("role")).toBe(false);
   });
 
   it("should set inert on closed content", () => {
@@ -1314,9 +1314,9 @@ describe("Sidebar.Loading", () => {
         <SidebarLoading />
       </TestSidebar>,
     );
-    const status = screen.getByRole("status");
-    expect(status.getAttribute("aria-label")).toBe("Loading");
-    expect(status.dataset.sidebar).toBe("loading");
+    const status = screen.getByRole("status", { name: "Loading" });
+    expect(status.textContent).toBe("Loading");
+    expect(status.closest('[data-sidebar="loading"]')).not.toBeNull();
   });
 
   it("should use a custom label when provided", () => {
@@ -1325,9 +1325,9 @@ describe("Sidebar.Loading", () => {
         <SidebarLoading label="Loading navigation" />
       </TestSidebar>,
     );
-    expect(screen.getByRole("status").getAttribute("aria-label")).toBe(
-      "Loading navigation",
-    );
+    expect(
+      screen.getByRole("status", { name: "Loading navigation" }).textContent,
+    ).toBe("Loading navigation");
   });
 
   it("should render a group-label and item skeleton for every placeholder row", () => {
@@ -1336,9 +1336,12 @@ describe("Sidebar.Loading", () => {
         <SidebarLoading />
       </TestSidebar>,
     );
-    const status = screen.getByRole("status");
+    const loading = screen
+      .getByRole("status")
+      .closest('[data-sidebar="loading"]');
     // 2 groups × (1 group-label + 3 rows × [icon + label]) = 2 + 12 = 14 blocks
-    expect(status.querySelectorAll(".skeleton-line")).toHaveLength(14);
+    expect(loading?.querySelectorAll(".skeleton-line")).toHaveLength(14);
+    expect(loading?.querySelectorAll('[aria-hidden="true"]')).toHaveLength(2);
   });
 
   it("should forward ref and className", () => {
@@ -1350,9 +1353,7 @@ describe("Sidebar.Loading", () => {
     );
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
     expect(ref.current?.dataset.sidebar).toBe("loading");
-    expect(
-      screen.getByRole("status").classList.contains("custom-loading"),
-    ).toBe(true);
+    expect(ref.current?.classList.contains("custom-loading")).toBe(true);
   });
 });
 

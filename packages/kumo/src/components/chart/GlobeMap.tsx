@@ -45,7 +45,7 @@ export interface GlobeMapProps {
   onMarkerClick?: (marker: GlobeMapMarker) => void;
   /** Initial globe rotation as `[longitude, latitude, roll]`. */
   defaultRotation?: [number, number, number];
-  /** Allow pointer dragging to rotate the globe. Default: `true`. */
+  /** Allow pointer dragging and keyboard sliders to rotate the globe. Default: `true`. */
   draggable?: boolean;
   /** Continuously rotate the globe horizontally. Default: `false`. */
   autoRotate?: boolean;
@@ -90,6 +90,10 @@ function normalizeRotation(
     Math.max(-90, Math.min(90, finiteNumber(rotation[1], -20))),
     finiteNumber(rotation[2], 0),
   ];
+}
+
+function wrapLongitude(longitude: number): number {
+  return ((((longitude + 180) % 360) + 360) % 360) - 180;
 }
 
 function createLandHatchPath(
@@ -175,7 +179,6 @@ export const GlobeMap = forwardRef<HTMLDivElement, GlobeMapProps>(
       x: number;
       y: number;
     } | null>(null);
-    const instructionsId = useId();
 
     const palette = useMemo(
       () => ChartPalette.mapColors(isDarkMode),
@@ -376,7 +379,10 @@ export const GlobeMap = forwardRef<HTMLDivElement, GlobeMapProps>(
     return (
       <div
         ref={ref}
-        className={cn("relative w-full overflow-hidden", className)}
+        className={cn(
+          "relative w-full overflow-hidden has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-kumo-focus",
+          className,
+        )}
         style={height === undefined ? { aspectRatio: "1" } : { height }}
         onFocusCapture={() => {
           isFocusedRef.current = true;
@@ -388,19 +394,49 @@ export const GlobeMap = forwardRef<HTMLDivElement, GlobeMapProps>(
         }}
       >
         {draggable ? (
-          <span id={instructionsId} className="sr-only">
-            Use the arrow keys to rotate the globe.
-          </span>
+          <div className="sr-only">
+            <input
+              type="range"
+              aria-label={`${ariaLabel} longitude`}
+              aria-valuetext={`${Math.round(wrapLongitude(rotation[0]))}°`}
+              min={-180}
+              max={180}
+              step={10}
+              value={wrapLongitude(rotation[0])}
+              onChange={(event) => {
+                const [longitude, latitude, roll] = rotationRef.current;
+                const nextLongitude = Number(event.currentTarget.value);
+                updateRotation(
+                  [
+                    longitude + nextLongitude - wrapLongitude(longitude),
+                    latitude,
+                    roll,
+                  ],
+                  true,
+                );
+              }}
+            />
+            <input
+              type="range"
+              aria-label={`${ariaLabel} latitude`}
+              aria-valuetext={`${Math.round(rotation[1])}°`}
+              min={-90}
+              max={90}
+              step={10}
+              value={rotation[1]}
+              onChange={(event) => {
+                const [longitude, , roll] = rotationRef.current;
+                updateRotation(
+                  [longitude, Number(event.currentTarget.value), roll],
+                  true,
+                );
+              }}
+            />
+          </div>
         ) : null}
-        {/* oxlint-disable-next-line no-noninteractive-element-interactions -- the draggable globe is a focusable, keyboard-rotatable widget */}
         <svg
           ref={svgRef}
-          // oxlint-disable-next-line prefer-tag-over-role -- <svg> cannot be replaced by <fieldset>
-          role="group"
           aria-label={ariaLabel}
-          aria-describedby={draggable ? instructionsId : undefined}
-          // oxlint-disable-next-line no-noninteractive-tabindex -- focus is required for arrow-key rotation when draggable
-          tabIndex={draggable ? 0 : undefined}
           viewBox={`0 0 ${GLOBE_VIEWBOX_SIZE} ${GLOBE_VIEWBOX_SIZE}`}
           className={cn(
             "block size-full touch-none select-none",
@@ -414,33 +450,6 @@ export const GlobeMap = forwardRef<HTMLDivElement, GlobeMapProps>(
             if (dragRef.current?.pointerId === event.pointerId) {
               dragRef.current = null;
             }
-          }}
-          onKeyDown={(event) => {
-            if (!draggable || event.target !== event.currentTarget) return;
-            if (
-              event.key !== "ArrowLeft" &&
-              event.key !== "ArrowRight" &&
-              event.key !== "ArrowUp" &&
-              event.key !== "ArrowDown"
-            ) {
-              return;
-            }
-            event.preventDefault();
-            const [longitude, latitude, roll] = rotationRef.current;
-            const nextRotation: [number, number, number] =
-              event.key === "ArrowLeft"
-                ? [longitude - 10, latitude, roll]
-                : event.key === "ArrowRight"
-                  ? [longitude + 10, latitude, roll]
-                  : event.key === "ArrowUp"
-                    ? [longitude, Math.min(90, latitude + 10), roll]
-                    : event.key === "ArrowDown"
-                      ? [longitude, Math.max(-90, latitude - 10), roll]
-                      : [longitude, latitude, roll];
-            if (nextRotation[0] === longitude && nextRotation[1] === latitude) {
-              return;
-            }
-            updateRotation(nextRotation, true);
           }}
           onPointerLeave={() => {
             if (!dragRef.current) setTooltip(null);

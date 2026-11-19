@@ -91,57 +91,57 @@ export const Loader = ({
 }: LoaderProps) => {
   const sizeValue = loaderVariants({ size });
   return (
-    <svg
-      width={sizeValue}
-      height={sizeValue}
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-      stroke="currentColor"
-      className={className}
-      // oxlint-disable-next-line prefer-tag-over-role -- Loader renders a bare <svg>, so the status role must live on it
-      role="status"
-      aria-label={ariaLabel}
-    >
-      <circle
-        cx="12"
-        cy="12"
-        r="9.5"
-        fill="none"
-        strokeWidth="2"
-        strokeLinecap="round"
+    <output aria-label={ariaLabel} className="inline-flex">
+      <svg
+        width={sizeValue}
+        height={sizeValue}
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+        stroke="currentColor"
+        className={className}
+        aria-hidden="true"
       >
-        <animateTransform
-          attributeName="transform"
-          type="rotate"
-          from="0 12 12"
-          to="360 12 12"
-          dur="2s"
-          repeatCount="indefinite"
+        <circle
+          cx="12"
+          cy="12"
+          r="9.5"
+          fill="none"
+          strokeWidth="2"
+          strokeLinecap="round"
+        >
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            from="0 12 12"
+            to="360 12 12"
+            dur="2s"
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="stroke-dasharray"
+            values="0 150;42 150;42 150"
+            keyTimes="0;0.5;1"
+            dur="1.5s"
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="stroke-dashoffset"
+            values="0;-16;-59"
+            keyTimes="0;0.5;1"
+            dur="1.5s"
+            repeatCount="indefinite"
+          />
+        </circle>
+        <circle
+          cx="12"
+          cy="12"
+          r="9.5"
+          fill="none"
+          opacity={0.1}
+          strokeWidth="2"
+          strokeLinecap="round"
         />
-        <animate
-          attributeName="stroke-dasharray"
-          values="0 150;42 150;42 150"
-          keyTimes="0;0.5;1"
-          dur="1.5s"
-          repeatCount="indefinite"
-        />
-        <animate
-          attributeName="stroke-dashoffset"
-          values="0;-16;-59"
-          keyTimes="0;0.5;1"
-          dur="1.5s"
-          repeatCount="indefinite"
-        />
-      </circle>
-      <circle
-        cx="12"
-        cy="12"
-        r="9.5"
-        fill="none"
-        opacity={0.1}
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
+      </svg>
+    </output>
   );
 };

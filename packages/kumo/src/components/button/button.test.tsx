@@ -90,8 +90,7 @@ describe("Button", () => {
       // Plus icon renders an SVG element
       const svg = button.querySelector("svg");
       expect(svg).toBeTruthy();
-      // Should not be the loader (no role="status")
-      expect(svg!.getAttribute("role")).not.toBe("status");
+      expect(screen.queryByRole("status")).toBeNull();
     });
 
     it("renders loader instead of icon in loading state", () => {
@@ -106,10 +105,10 @@ describe("Button", () => {
       const loader = screen.getByRole("status");
       expect(loader).toBeTruthy();
       expect(loader.getAttribute("aria-label")).toBe("Loading");
-      // The Plus icon should NOT be rendered — only the loader SVG with role="status"
+      // The Plus icon should NOT be rendered — only the loader's SVG, inside the status
       const svgs = button.querySelectorAll("svg");
       expect(svgs).toHaveLength(1);
-      expect(svgs[0].getAttribute("role")).toBe("status");
+      expect(loader.contains(svgs[0])).toBe(true);
     });
 
     it("trims leading padding when an icon precedes text", () => {
