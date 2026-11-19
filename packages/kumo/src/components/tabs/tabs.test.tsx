@@ -31,13 +31,21 @@ describe("Tabs", () => {
             value: "overview",
             label: "Overview",
             nativeButton: false,
-            render: (props) => <a {...props} href="/settings/overview" />,
+            render: ({ children, ...props }) => (
+              <a {...props} href="/settings/overview">
+                {children}
+              </a>
+            ),
           },
           {
             value: "members",
             label: "Members",
             nativeButton: false,
-            render: (props) => <a {...props} href="/settings/members" />,
+            render: ({ children, ...props }) => (
+              <a {...props} href="/settings/members">
+                {children}
+              </a>
+            ),
           },
         ]}
       />,

@@ -392,11 +392,14 @@ export const GlobeMap = forwardRef<HTMLDivElement, GlobeMapProps>(
             Use the arrow keys to rotate the globe.
           </span>
         ) : null}
+        {/* oxlint-disable-next-line no-noninteractive-element-interactions -- the draggable globe is a focusable, keyboard-rotatable widget */}
         <svg
           ref={svgRef}
+          // oxlint-disable-next-line prefer-tag-over-role -- <svg> cannot be replaced by <fieldset>
           role="group"
           aria-label={ariaLabel}
           aria-describedby={draggable ? instructionsId : undefined}
+          // oxlint-disable-next-line no-noninteractive-tabindex -- focus is required for arrow-key rotation when draggable
           tabIndex={draggable ? 0 : undefined}
           viewBox={`0 0 ${GLOBE_VIEWBOX_SIZE} ${GLOBE_VIEWBOX_SIZE}`}
           className={cn(

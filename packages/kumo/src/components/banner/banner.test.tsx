@@ -19,7 +19,7 @@ describe("Banner", () => {
   it("forwards root div props", () => {
     render(
       <Banner
-        role="status"
+        role="note"
         data-testid="banner"
         aria-live="polite"
         title="System status"
@@ -27,7 +27,7 @@ describe("Banner", () => {
     );
 
     const banner = screen.getByTestId("banner");
-    expect(banner.getAttribute("role")).toBe("status");
+    expect(banner.getAttribute("role")).toBe("note");
     expect(banner.getAttribute("aria-live")).toBe("polite");
     expect(banner.textContent).toBe("System status");
   });
@@ -126,8 +126,12 @@ describe("Banner", () => {
 
   it("routes link actions through LinkProvider", () => {
     const AppLink = forwardRef<HTMLAnchorElement, LinkComponentProps>(
-      function AppLink({ to: _to, ...props }, ref) {
-        return <a ref={ref} data-app-link="" {...props} />;
+      function AppLink({ to: _to, children, ...props }, ref) {
+        return (
+          <a ref={ref} data-app-link="" {...props}>
+            {children}
+          </a>
+        );
       },
     );
     render(

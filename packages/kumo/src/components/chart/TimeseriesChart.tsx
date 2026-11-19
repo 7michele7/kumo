@@ -1008,8 +1008,7 @@ function ChartSkeletonLoader({
   const isBar = type === "bar";
 
   return (
-    <div
-      role="status"
+    <output
       aria-label="Loading chart"
       className="absolute inset-0 overflow-hidden"
       style={{ height }}
@@ -1081,7 +1080,7 @@ function ChartSkeletonLoader({
           />
         </g>
       </svg>
-    </div>
+    </output>
   );
 }
 

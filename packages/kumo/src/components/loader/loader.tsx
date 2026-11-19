@@ -98,6 +98,7 @@ export const Loader = ({
       xmlns="http://www.w3.org/2000/svg"
       stroke="currentColor"
       className={className}
+      // oxlint-disable-next-line prefer-tag-over-role -- Loader renders a bare <svg>, so the status role must live on it
       role="status"
       aria-label={ariaLabel}
     >

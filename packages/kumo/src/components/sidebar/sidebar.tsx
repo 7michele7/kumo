@@ -1170,6 +1170,7 @@ const SidebarLoading = forwardRef<
   <div
     ref={ref}
     data-sidebar="loading"
+    // oxlint-disable-next-line prefer-tag-over-role -- <output> only allows phrasing content; this wraps block skeleton rows
     role="status"
     aria-label={label}
     className={cn(
@@ -2480,6 +2481,7 @@ const SidebarCollapsibleContent = forwardRef<
     <div
       ref={mergedRef}
       id={contentId}
+      // oxlint-disable-next-line prefer-tag-over-role -- an unnamed <section> exposes no region role, and the public ref is HTMLDivElement
       role="region"
       aria-hidden={!isContentShown}
       onTransitionEnd={handleOpenTransitionEnd}

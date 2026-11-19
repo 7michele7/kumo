@@ -88,6 +88,7 @@ export const ButtonGroup = forwardRef<HTMLDivElement, ButtonGroupProps>(
       <div
         {...props}
         ref={ref}
+        // oxlint-disable-next-line prefer-tag-over-role -- <fieldset> is for form controls and adds UA styles; the public ref is HTMLDivElement
         role="group"
         data-kumo-component="ButtonGroup"
         className={cn(KUMO_BUTTON_GROUP_STYLING.baseClasses, className)}

@@ -250,7 +250,7 @@ function toRgb(color: string) {
   }
   context.fillStyle = color;
   context.fillRect(0, 0, 1, 1);
-  return [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)];
+  return Array.from(context.getImageData(0, 0, 1, 1).data.slice(0, 3));
 }
 
 function getLuminance(color: string) {
