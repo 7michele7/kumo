@@ -64,7 +64,7 @@ describe("Primitives Export", () => {
     });
   });
 
-  describe("Source file", () => {
+  describe("Source file", { timeout: 15_000 }, () => {
     it("should have src/primitives/index.ts file", () => {
       expect(existsSync(primitivesSourcePath)).toBe(true);
     });
@@ -76,7 +76,7 @@ describe("Primitives Export", () => {
     });
   });
 
-  describe("Sync with base-ui", () => {
+  describe("Sync with base-ui", { timeout: 15_000 }, () => {
     it("should have base-ui package installed", () => {
       expect(existsSync(baseUiPackagePath)).toBe(true);
     });

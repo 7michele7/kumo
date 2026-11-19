@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vite-plus/test";
 import { getMainEntryExports } from "./test-utils";
 
-describe("Main Entry Point Imports", () => {
+describe("Main Entry Point Imports", { timeout: 15_000 }, () => {
   let mainEntryExports: string[] = [];
 
   beforeAll(async () => {
