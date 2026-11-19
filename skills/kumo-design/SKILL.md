@@ -185,7 +185,7 @@ Inline icons must be optically the same size as and be center-aligned with text.
 
 ```tsx
 <div className="flex items-start gap-2">
-  <span className="h-lh flex items-center">
+  <span className="flex h-lh items-center">
     <Icon />
   </span>
   <Text>Text that may wrap onto multiple lines</Text>
